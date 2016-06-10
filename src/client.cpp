@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-10 23:51
+ * Last Modified:  2016-06-11 00:18
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -17,6 +17,7 @@
 #include <time.h>
 #include "client.h"
 #include "segment.h"
+#include "tool.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -75,9 +76,8 @@ int main( int argc, char *argv[] )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
         {
-            char ip[INET_ADDRSTRLEN];
-            inet_ntop( AF_INET, &serverAddr.sin_addr, ip, INET_ADDRSTRLEN );
-            cout << "Receive a packet(SYN/ACK) from " <<  ip << " : " << pktRcv.sourcePort << endl;
+            string ip = getIpStr( &serverAddr.sin_addr );
+            cout << "Receive a packet(SYN/ACK) from " << ip  << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             Packet ack;
             ack.ACK = true;

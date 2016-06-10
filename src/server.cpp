@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-10 23:58
+ * Last Modified:  2016-06-11 00:18
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include "server.h"
 #include "segment.h"
+#include "tool.h"
 using namespace std;
 
 int main()
@@ -23,6 +24,7 @@ int main()
     struct sockaddr_in serverAddr;
     struct sockaddr_in clientAddr;
     int sockFd;
+    int currentSeqnum = rand() % 10000 + 1;
     socklen_t cliSize = sizeof( clientAddr );
 
     bzero( &serverAddr, sizeof( serverAddr ) );
@@ -58,14 +60,13 @@ int main()
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == false )
         {
-            char ip[INET_ADDRSTRLEN];
-            inet_ntop( AF_INET, &clientAddr.sin_addr, ip, INET_ADDRSTRLEN );
+            string ip = getIpStr( &clientAddr.sin_addr );
             cout << "Receive a packet(SYN) from " <<  ip << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             Packet synack;
             synack.sourcePort = SERVER_PORT;
             synack.destPort = pktRcv.sourcePort;
-            synack.seqNum = rand() % 10000 + 1;
+            synack.seqNum = currentSeqnum;
             synack.ackNum = pktRcv.seqNum + 1;
             synack.SYN = true;
             synack.ACK = true;
@@ -74,8 +75,7 @@ int main()
         }
         else if ( pktRcv.SYN == false && pktRcv.ACK == true )
         {
-            char ip[INET_ADDRSTRLEN];
-            inet_ntop( AF_INET, &clientAddr.sin_addr, ip, INET_ADDRSTRLEN );
+            string ip = getIpStr( &clientAddr.sin_addr );
             cout << "Receive a packet(ACK) from " <<  ip << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             cout << "=====Complete the three-way handshake=====" << endl;

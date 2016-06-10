@@ -1,4 +1,4 @@
-CSRCS = 
+CSRCS = tool.cpp
 EX1_SRCS = server.cpp
 EX2_SRCS = client.cpp
 EXT = .cpp
