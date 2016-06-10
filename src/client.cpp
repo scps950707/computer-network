@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 01:27
+ * Last Modified:  2016-06-11 02:50
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -30,7 +30,6 @@ int main( int argc, char *argv[] )
     struct sockaddr_in clientAddr;
     struct sockaddr_in serverAddr;
     int sockFd;
-    int port = atoi( argv[2] );
     int serverPort = atoi( argv[2] );
     string serverIP(argv[1]);
 #ifdef __SEQSTATIC__
@@ -47,7 +46,7 @@ int main( int argc, char *argv[] )
 
     bzero( &serverAddr, sizeof( serverAddr ) );
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons( port );
+    serverAddr.sin_port = htons( serverPort );
     if ( inet_pton( AF_INET, argv[1], &serverAddr.sin_addr ) <= 0 )
     {
         cout << "IP error " << endl;
@@ -68,22 +67,21 @@ int main( int argc, char *argv[] )
 
     cout << "=====Start the three-way handshake=====" << endl;
 
-    Packet pktSnd( CLIENT_PORT, SERVER_PORT, currentSeqnum, 0 );
+    Packet pktSnd( CLIENT_PORT, serverPort, currentSeqnum, 0 );
     pktSnd.SYN = true;
+    sendPktMsg("SYN",serverIP,serverPort);
     sendto( sockFd, &pktSnd, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
-    cout << "Send a packet(SYN) to " << argv[1] << " : " << argv[2] << endl;
 
     Packet pktRcv;
     while ( recvfrom( sockFd , &pktRcv, MSS, 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
         {
-            string ip = getIpStr( &serverAddr.sin_addr );
-            cout << "Receive a packet(SYN/ACK) from " << ip  << " : " << pktRcv.sourcePort << endl;
+            cout << "Receive a packet(SYN/ACK) from " << serverIP  << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
-            Packet ack( CLIENT_PORT, SERVER_PORT, ++currentSeqnum, pktRcv.seqNum + 1 );
+            Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktRcv.seqNum + 1 );
             ack.ACK = true;
-            cout << "Send a Packet(ACK) to " << ip << " : " << SERVER_PORT << endl;
+            sendPktMsg("ACK",serverIP,serverPort);
             sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
             cout << "=====Complete the three-way handshake=====" << endl;
             break;

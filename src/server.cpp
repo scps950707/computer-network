@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 01:28
+ * Last Modified:  2016-06-11 02:51
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -70,7 +70,7 @@ int main()
             Packet synack( SERVER_PORT, pktRcv.sourcePort, currentSeqnum, pktRcv.seqNum + 1 );
             synack.SYN = true;
             synack.ACK = true;
-            cout << "Send a packet(SYN/ACK) to " << ip << " : " << synack.destPort << endl;
+            sendPktMsg("SYN/ACK",ip,synack.destPort);
             sendto( sockFd, &synack, MSS, 0, ( struct sockaddr * )&clientAddr, cliSize );
         }
         else if ( pktRcv.SYN == false && pktRcv.ACK == true )
