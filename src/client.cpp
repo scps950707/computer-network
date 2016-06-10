@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 04:24
+ * Last Modified:  2016-06-11 04:44
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -18,6 +18,7 @@
 #include "client.h"
 #include "segment.h"
 #include "tool.h"
+#include "para.h"
 using namespace std;
 
 int main( int argc, char *argv[] )

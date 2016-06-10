@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:57
- * Last Modified:  2016-06-11 04:35
+ * Last Modified:  2016-06-11 04:44
  * Filename:       segment.h
  * Purpose:        homework
  */
@@ -11,6 +11,7 @@
 #define __SEGMENT_H__
 
 #include "stdint.h"
+#include "para.h"
 
 typedef struct tmp
 {
@@ -28,7 +29,7 @@ typedef struct tmp
     uint16_t checkSum;
     uint16_t urgDataPtr;
     uint32_t options;
-    char appData[484];
+    char appData[MSS];
     tmp()
     {
         sourcePort = 0;

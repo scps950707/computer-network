@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 04:30
+ * Last Modified:  2016-06-11 04:47
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -16,11 +16,11 @@
 #include "server.h"
 #include "segment.h"
 #include "tool.h"
+#include "para.h"
 using namespace std;
 
 int main()
 {
-
     struct sockaddr_in serverAddr;
     struct sockaddr_in clientAddr;
     int sockFd;
@@ -100,7 +100,7 @@ int main()
             rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
             Packet ack( SERVER_PORT, pktFourShake.sourcePort, ++currentSeqnum, pktFourShake.seqNum + 1 );
             ack.ACK = true;
-            sendPktMsg("ACK",clientIP,pktFourShake.sourcePort);
+            sendPktMsg( "ACK", clientIP, pktFourShake.sourcePort );
             sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&clientAddr, cliSize );
             break;
         }
