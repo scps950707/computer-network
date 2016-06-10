@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 00:18
+ * Last Modified:  2016-06-11 01:27
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -32,8 +32,6 @@ int main( int argc, char *argv[] )
     int sockFd;
     int port = atoi( argv[2] );
     int currentSeqnum = rand() % 10000 + 1;
-    Packet pktSnd;
-    Packet pktRcv;
     socklen_t serSize = sizeof( serverAddr );
 
     bzero( &serverAddr, sizeof( serverAddr ) );
@@ -64,14 +62,12 @@ int main( int argc, char *argv[] )
 
     cout << "=====Start the three-way handshake=====" << endl;
 
+    Packet pktSnd( CLIENT_PORT, SERVER_PORT, currentSeqnum, 0 );
     pktSnd.SYN = true;
-    pktSnd.destPort = SERVER_PORT;
-    pktSnd.sourcePort = CLIENT_PORT;
-    pktSnd.seqNum = currentSeqnum;
-    pktSnd.ackNum = 0;
     sendto( sockFd, &pktSnd, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
     cout << "Send a packet(SYN) to " << argv[1] << " : " << argv[2] << endl;
 
+    Packet pktRcv;
     while ( recvfrom( sockFd , &pktRcv, MSS, 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
@@ -79,12 +75,8 @@ int main( int argc, char *argv[] )
             string ip = getIpStr( &serverAddr.sin_addr );
             cout << "Receive a packet(SYN/ACK) from " << ip  << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
-            Packet ack;
+            Packet ack( CLIENT_PORT, SERVER_PORT, ++currentSeqnum, pktRcv.seqNum + 1 );
             ack.ACK = true;
-            ack.destPort = SERVER_PORT;
-            ack.sourcePort = CLIENT_PORT;
-            ack.seqNum = ++currentSeqnum;
-            ack.ackNum = pktRcv.seqNum + 1;
             cout << "Send a Packet(ACK) to " << ip << " : " << SERVER_PORT << endl;
             sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
             cout << "=====Complete the three-way handshake=====" << endl;
