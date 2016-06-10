@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:57
- * Last Modified:  2016-06-11 01:11
+ * Last Modified:  2016-06-11 04:35
  * Filename:       segment.h
  * Purpose:        homework
  */
@@ -24,7 +24,7 @@ typedef struct tmp
     bool RST;
     bool SYN;
     bool FIN;
-    uint16_t recvWindowl;
+    uint16_t rcvWin;
     uint16_t checkSum;
     uint16_t urgDataPtr;
     uint32_t options;
@@ -41,7 +41,7 @@ typedef struct tmp
         RST = false;
         SYN = false;
         FIN = false;
-        recvWindowl = 0;
+        rcvWin = 0;
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
@@ -55,7 +55,7 @@ typedef struct tmp
         RST = false;
         SYN = false;
         FIN = false;
-        recvWindowl = 0;
+        rcvWin = 0;
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
