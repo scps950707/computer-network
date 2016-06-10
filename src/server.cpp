@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-10 22:56
+ * Last Modified:  2016-06-10 23:58
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -53,25 +53,34 @@ int main()
     cout << "Listening for client..." << endl;
     cout << "=====Start the three-way handshake=====" << endl;
 
-    Packet buf;
-    while ( recvfrom( sockFd , &buf, MSS, 0, ( struct sockaddr * )&clientAddr, &cliSize ) > 0 )
+    Packet pktRcv;
+    while ( recvfrom( sockFd , &pktRcv, MSS, 0, ( struct sockaddr * )&clientAddr, &cliSize ) )
     {
-        if ( buf.SYN == true && buf.ACK == false )
+        if ( pktRcv.SYN == true && pktRcv.ACK == false )
         {
             char ip[INET_ADDRSTRLEN];
             inet_ntop( AF_INET, &clientAddr.sin_addr, ip, INET_ADDRSTRLEN );
-            cout << "Receive a packet(SYN) from" <<  ip << " : " << buf.sourcePort << endl;
-            cout << "    Receive a packet (seq_num = " << buf.seqNum << ", ack_num =" << buf.ackNum << ")" << endl;
+            cout << "Receive a packet(SYN) from " <<  ip << " : " << pktRcv.sourcePort << endl;
+            cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
+            Packet synack;
+            synack.sourcePort = SERVER_PORT;
+            synack.destPort = pktRcv.sourcePort;
+            synack.seqNum = rand() % 10000 + 1;
+            synack.ackNum = pktRcv.seqNum + 1;
+            synack.SYN = true;
+            synack.ACK = true;
+            cout << "Send a packet(SYN/ACK) to " << ip << " : " << synack.destPort << endl;
+            sendto( sockFd, &synack, MSS, 0, ( struct sockaddr * )&clientAddr, cliSize );
         }
-        else if ( buf.SYN == false && buf.ACK == true )
+        else if ( pktRcv.SYN == false && pktRcv.ACK == true )
         {
             char ip[INET_ADDRSTRLEN];
             inet_ntop( AF_INET, &clientAddr.sin_addr, ip, INET_ADDRSTRLEN );
-            cout << "Receive a packet(ACK) from" <<  ip << " : " << buf.sourcePort << endl;
-            cout << "    Receive a packet (seq_num = " << buf.seqNum << ", ack_num =" << buf.ackNum << ")" << endl;
+            cout << "Receive a packet(ACK) from " <<  ip << " : " << pktRcv.sourcePort << endl;
+            cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             cout << "=====Complete the three-way handshake=====" << endl;
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
