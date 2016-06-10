@@ -21,5 +21,5 @@ string getIpStr( const void *src )
 
 void sendPktMsg( string type, string ip, int port )
 {
-    cout << "Send a Packet(" << type << ") to " << ip << " : " << port << endl;
+    cout << "Send a packet(" << type << ") to " << ip << " : " << port << endl;
 }
