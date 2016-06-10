@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 03:19
+ * Last Modified:  2016-06-11 04:24
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -88,6 +88,34 @@ int main( int argc, char *argv[] )
     }
 
     cout << "=====Complete the three-way handshake=====" << endl;
+
+    cout << "=====Start the four-way handshake=====" << endl;
+
+    Packet pktFourShake;
+    while ( recvfrom( sockFd , &pktFourShake, MSS, 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    {
+        if ( pktFourShake.FIN == true )
+        {
+            rcvPktMsg( "FIN", serverIP, pktFourShake.sourcePort );
+            rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
+            Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktFourShake.seqNum + 1 );
+            ack.ACK = true;
+            sendPktMsg( "ACK", serverIP, serverPort );
+            sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+            Packet fin( CLIENT_PORT, serverPort, currentSeqnum, pktFourShake.seqNum + 1 );
+            fin.FIN = true;
+            sendPktMsg( "FIN", serverIP, serverPort );
+            sendto( sockFd, &fin, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+        }
+        if ( pktFourShake.ACK == true )
+        {
+            rcvPktMsg( "ACK", serverIP, pktFourShake.sourcePort );
+            rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
+            break;
+        }
+    }
+
+    cout << "=====Complete the four-way handshake=====" << endl;
 
     return EXIT_SUCCESS;
 }
