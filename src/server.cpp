@@ -24,7 +24,11 @@ int main()
     struct sockaddr_in serverAddr;
     struct sockaddr_in clientAddr;
     int sockFd;
+#ifdef __SEQSTATIC__
+    int currentSeqnum = 3440;
+#else
     int currentSeqnum = rand() % 10000 + 1;
+#endif
     socklen_t cliSize = sizeof( clientAddr );
 
     bzero( &serverAddr, sizeof( serverAddr ) );

@@ -16,6 +16,9 @@ all: $(EXEC1) $(EXEC2)
 debug: CXXFLAGS += -D__DEBUG__
 debug: $(EXEC)
 
+seq: CXXFLAGS += -D__SEQSTATIC__
+seq: $(EXEC1) $(EXEC2)
+
 $(EXEC1): $(COBJS) $(EX1_OBJS)
 		$(CXX) $(CXXFLAGS) -o $@ $(COBJS) $(EX1_OBJS)
 

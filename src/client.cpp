@@ -31,7 +31,13 @@ int main( int argc, char *argv[] )
     struct sockaddr_in serverAddr;
     int sockFd;
     int port = atoi( argv[2] );
+    int serverPort = atoi( argv[2] );
+    string serverIP(argv[1]);
+#ifdef __SEQSTATIC__
+    int currentSeqnum = 9230;
+#else
     int currentSeqnum = rand() % 10000 + 1;
+#endif
     socklen_t serSize = sizeof( serverAddr );
 
     bzero( &serverAddr, sizeof( serverAddr ) );
