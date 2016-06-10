@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 00:06
- * Last Modified:  2016-06-11 03:08
+ * Last Modified:  2016-06-11 03:19
  * Filename:       tool.cpp
  * Purpose:        homework
  */
@@ -27,4 +27,9 @@ void sendPktMsg( string type, string ip, int port )
 void rcvPktMsg( string type, string ip, int port )
 {
     cout << "Receive a packet(" << type << ") from " <<  ip << " : " << port << endl;
+}
+
+void rcvPktNumMsg( int seqNum, int ackNum )
+{
+    cout << "       Receive a packet (seq_num = " << seqNum << ", ack_num = " << ackNum << ")" << endl;
 }

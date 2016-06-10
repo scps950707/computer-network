@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 03:12
+ * Last Modified:  2016-06-11 03:19
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
     struct sockaddr_in serverAddr;
     int sockFd;
     int serverPort = atoi( argv[2] );
-    string serverIP(argv[1]);
+    string serverIP( argv[1] );
 #ifdef __SEQSTATIC__
     int currentSeqnum = 9230;
 #else
@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
 
     Packet pktSnd( CLIENT_PORT, serverPort, currentSeqnum, 0 );
     pktSnd.SYN = true;
-    sendPktMsg("SYN",serverIP,serverPort);
+    sendPktMsg( "SYN", serverIP, serverPort );
     sendto( sockFd, &pktSnd, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
 
     Packet pktRcv;
@@ -77,11 +77,11 @@ int main( int argc, char *argv[] )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
         {
-            rcvPktMsg("SYN/ACK",serverIP,pktRcv.sourcePort);
-            cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
+            rcvPktMsg( "SYN/ACK", serverIP, pktRcv.sourcePort );
+            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktRcv.seqNum + 1 );
             ack.ACK = true;
-            sendPktMsg("ACK",serverIP,serverPort);
+            sendPktMsg( "ACK", serverIP, serverPort );
             sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
             break;
         }

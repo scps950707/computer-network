@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 03:12
+ * Last Modified:  2016-06-11 03:19
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -65,19 +65,19 @@ int main()
         if ( pktRcv.SYN == true && pktRcv.ACK == false )
         {
             string ip = getIpStr( &clientAddr.sin_addr );
-            rcvPktMsg("SYN",ip,pktRcv.sourcePort);
-            cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
+            rcvPktMsg( "SYN", ip, pktRcv.sourcePort );
+            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
             Packet synack( SERVER_PORT, pktRcv.sourcePort, currentSeqnum, pktRcv.seqNum + 1 );
             synack.SYN = true;
             synack.ACK = true;
-            sendPktMsg("SYN/ACK",ip,synack.destPort);
+            sendPktMsg( "SYN/ACK", ip, synack.destPort );
             sendto( sockFd, &synack, MSS, 0, ( struct sockaddr * )&clientAddr, cliSize );
         }
         else if ( pktRcv.SYN == false && pktRcv.ACK == true )
         {
             string ip = getIpStr( &clientAddr.sin_addr );
-            rcvPktMsg("ACK",ip,pktRcv.sourcePort);
-            cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
+            rcvPktMsg( "ACK", ip, pktRcv.sourcePort );
+            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
             break;
         }
     }
