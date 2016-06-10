@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 02:58
+ * Last Modified:  2016-06-11 03:12
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -65,7 +65,7 @@ int main()
         if ( pktRcv.SYN == true && pktRcv.ACK == false )
         {
             string ip = getIpStr( &clientAddr.sin_addr );
-            cout << "Receive a packet(SYN) from " <<  ip << " : " << pktRcv.sourcePort << endl;
+            rcvPktMsg("SYN",ip,pktRcv.sourcePort);
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             Packet synack( SERVER_PORT, pktRcv.sourcePort, currentSeqnum, pktRcv.seqNum + 1 );
             synack.SYN = true;
@@ -76,7 +76,7 @@ int main()
         else if ( pktRcv.SYN == false && pktRcv.ACK == true )
         {
             string ip = getIpStr( &clientAddr.sin_addr );
-            cout << "Receive a packet(ACK) from " <<  ip << " : " << pktRcv.sourcePort << endl;
+            rcvPktMsg("ACK",ip,pktRcv.sourcePort);
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             break;
         }

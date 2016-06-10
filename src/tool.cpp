@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 00:06
- * Last Modified:  2016-06-11 02:48
+ * Last Modified:  2016-06-11 03:08
  * Filename:       tool.cpp
  * Purpose:        homework
  */
@@ -22,4 +22,9 @@ string getIpStr( const void *src )
 void sendPktMsg( string type, string ip, int port )
 {
     cout << "Send a packet(" << type << ") to " << ip << " : " << port << endl;
+}
+
+void rcvPktMsg( string type, string ip, int port )
+{
+    cout << "Receive a packet(" << type << ") from " <<  ip << " : " << port << endl;
 }

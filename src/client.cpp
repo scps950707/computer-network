@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 02:58
+ * Last Modified:  2016-06-11 03:12
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -77,7 +77,7 @@ int main( int argc, char *argv[] )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
         {
-            cout << "Receive a packet(SYN/ACK) from " << serverIP  << " : " << pktRcv.sourcePort << endl;
+            rcvPktMsg("SYN/ACK",serverIP,pktRcv.sourcePort);
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktRcv.seqNum + 1 );
             ack.ACK = true;
