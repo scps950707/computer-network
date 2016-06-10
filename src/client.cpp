@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 02:50
+ * Last Modified:  2016-06-11 02:58
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -83,10 +83,11 @@ int main( int argc, char *argv[] )
             ack.ACK = true;
             sendPktMsg("ACK",serverIP,serverPort);
             sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
-            cout << "=====Complete the three-way handshake=====" << endl;
             break;
         }
     }
+
+    cout << "=====Complete the three-way handshake=====" << endl;
 
     return EXIT_SUCCESS;
 }

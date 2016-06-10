@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 02:51
+ * Last Modified:  2016-06-11 02:58
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -78,9 +78,11 @@ int main()
             string ip = getIpStr( &clientAddr.sin_addr );
             cout << "Receive a packet(ACK) from " <<  ip << " : " << pktRcv.sourcePort << endl;
             cout << "    Receive a packet (seq_num = " << pktRcv.seqNum << ", ack_num = " << pktRcv.ackNum << ")" << endl;
-            cout << "=====Complete the three-way handshake=====" << endl;
+            break;
         }
     }
+
+    cout << "=====Complete the three-way handshake=====" << endl;
 
     return EXIT_SUCCESS;
 }
