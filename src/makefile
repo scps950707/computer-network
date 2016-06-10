@@ -14,7 +14,7 @@ DEP = dep
 all: $(EXEC1) $(EXEC2)
 
 debug: CXXFLAGS += -D__DEBUG__
-debug: $(EXEC)
+debug: $(EXEC1) $(EXEC2)
 
 seq: CXXFLAGS += -D__SEQSTATIC__
 seq: $(EXEC1) $(EXEC2)
@@ -32,4 +32,4 @@ dep:
 		$(CXX) $(CXXFLAGS) -M $(CSRCS) $(EX1_SRCS) $(EX2_SRCS) > $(DEP)
 
 clean:
-		rm -rf $(EXEC1) $(EXEC2) $(EX1_OBJS) $(EX2_OBJS) $(DEP)
+		rm -rf $(EXEC1) $(EXEC2) $(EX1_OBJS) $(EX2_OBJS) $(COBJS) $(DEP)
