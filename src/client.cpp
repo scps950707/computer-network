@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 17:32
+ * Last Modified:  2016-06-11 17:39
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -68,19 +68,11 @@ int main( int argc, char *argv[] )
         exit( EXIT_FAILURE );
     }
 
-    cout << "=====Start the three-way handshake=====" << endl;
-
     ClientThreeWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
-
-    cout << "=====Complete the three-way handshake=====" << endl;
 
     clientSlowStart( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
-    cout << "=====Start the four-way handshake=====" << endl;
-
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
-
-    cout << "=====Complete the four-way handshake=====" << endl;
 
     return EXIT_SUCCESS;
 }

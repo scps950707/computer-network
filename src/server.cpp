@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 17:32
+ * Last Modified:  2016-06-11 17:39
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -62,27 +62,19 @@ int main()
     cout << "Server is listening on port 10250" << endl;
     cout << "===============" << endl;
     cout << "Listening for client..." << endl;
-    cout << "=====Start the three-way handshake=====" << endl;
 
     Packet pktThreeShakeRcv;
     ServerThreeWayHandShake( sockFd, currentSeqnum, clientIP, clientPort, clientAddr, pktThreeShakeRcv );
     curRcvSeqnum = pktThreeShakeRcv.seqNum;
-
-    cout << "=====Complete the three-way handshake=====" << endl;
 
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
     serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
-
-    cout << "=====Start the four-way handshake=====" << endl;
-
     Packet pktFourShake;
     ServerFourWayHandShake( sockFd, currentSeqnum, curRcvSeqnum, clientIP, clientPort, clientAddr, pktFourShake );
     curRcvSeqnum = pktFourShake.seqNum;
-
-    cout << "=====Complete the four-way handshake=====" << endl;
 
     return EXIT_SUCCESS;
 }

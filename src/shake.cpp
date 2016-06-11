@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 15:44
- * Last Modified:  2016-06-11 16:24
+ * Last Modified:  2016-06-11 17:40
  * Filename:       shake.cpp
  * Purpose:        homework
  */
@@ -17,6 +17,7 @@ void ServerThreeWayHandShake( int &sockFd, int &currentSeqnum, string &clientIP,
     {
         if ( pktThreeShakeRcv.SYN == true && pktThreeShakeRcv.ACK == false )
         {
+            cout << "=====Start the three-way handshake=====" << endl;
             clientIP = getIpStr( &clientAddr.sin_addr );
             clientPort = pktThreeShakeRcv.sourcePort;
             rcvPktMsg( "SYN", clientIP, clientPort );
@@ -34,10 +35,12 @@ void ServerThreeWayHandShake( int &sockFd, int &currentSeqnum, string &clientIP,
             break;
         }
     }
+    cout << "=====Complete the three-way handshake=====" << endl;
 }
 
 void ServerFourWayHandShake( int &sockFd, int &currentSeqnum, int &curRcvSeqnum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktFourShake )
 {
+    cout << "=====Start the four-way handshake=====" << endl;
     socklen_t cliSize = sizeof( clientAddr );
     Packet fin( SERVER_PORT, clientPort, ++currentSeqnum, curRcvSeqnum + 1 );
     fin.FIN = true;
@@ -62,18 +65,20 @@ void ServerFourWayHandShake( int &sockFd, int &currentSeqnum, int &curRcvSeqnum,
             rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
         }
     }
+    cout << "=====Complete the four-way handshake=====" << endl;
 }
 
-void ClientThreeWayHandShake(int &sockFd, int &currentSeqnum,string &serverIP,uint16_t &serverPort,sockaddr_in &serverAddr)
+void ClientThreeWayHandShake( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
+    cout << "=====Start the three-way handshake=====" << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktThreeShakeSyn( CLIENT_PORT, serverPort, currentSeqnum, 0 );
     pktThreeShakeSyn.SYN = true;
     sendPktMsg( "SYN", serverIP, serverPort );
-    sendto( sockFd, &pktThreeShakeSyn, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
+    sendto( sockFd, &pktThreeShakeSyn, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
 
     Packet pktThreeShake;
-    while ( recvfrom( sockFd , &pktThreeShake, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    while ( recvfrom( sockFd , &pktThreeShake, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         if ( pktThreeShake.SYN == true && pktThreeShake.ACK == true )
         {
@@ -82,13 +87,14 @@ void ClientThreeWayHandShake(int &sockFd, int &currentSeqnum,string &serverIP,ui
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktThreeShake.seqNum + 1 );
             ack.ACK = true;
             sendPktMsg( "ACK", serverIP, serverPort );
-            sendto( sockFd, &ack, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
+            sendto( sockFd, &ack, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
             break;
         }
     }
+    cout << "=====Complete the three-way handshake=====" << endl;
 }
 
-void ClientFourWayHandShake(int &sockFd, int &currentSeqnum,string &serverIP,uint16_t &serverPort,sockaddr_in &serverAddr)
+void ClientFourWayHandShake( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     socklen_t serSize = sizeof( serverAddr );
     Packet pktFourShake;
@@ -96,6 +102,7 @@ void ClientFourWayHandShake(int &sockFd, int &currentSeqnum,string &serverIP,uin
     {
         if ( pktFourShake.FIN == true )
         {
+            cout << "=====Start the four-way handshake=====" << endl;
             rcvPktMsg( "FIN", serverIP, pktFourShake.sourcePort );
             rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktFourShake.seqNum + 1 );
@@ -114,4 +121,5 @@ void ClientFourWayHandShake(int &sockFd, int &currentSeqnum,string &serverIP,uin
             break;
         }
     }
+    cout << "=====Complete the four-way handshake=====" << endl;
 }
