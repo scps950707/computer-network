@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 17:39
+ * Last Modified:  2016-06-11 22:35
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -16,12 +16,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdint.h>
+#include <map>
 #include "client.h"
 #include "segment.h"
 #include "tool.h"
 #include "para.h"
 #include "shake.h"
 #include "slow.h"
+#include "nat.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -42,10 +44,17 @@ int main( int argc, char *argv[] )
     string serverIP( argv[1] );
     uint16_t serverPort = atoi( argv[2] );
 
+    map<string, string> table;
+    createNatTable( table );
+    string defaultIP = "192.168.0.2";
     bzero( &clientAddr, sizeof( clientAddr ) );
     clientAddr.sin_family = AF_INET;
-    clientAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+    clientAddr.sin_addr.s_addr = inet_addr(defaultIP.c_str());
     clientAddr.sin_port = htons( CLIENT_PORT );
+
+    cout << "client IP:" <<  getIpStr( &clientAddr.sin_addr ) << endl;
+    cout << "translate IP to " << table[defaultIP] << endl;
+    clientAddr.sin_addr.s_addr = inet_addr(table[defaultIP].c_str());
 
     bzero( &serverAddr, sizeof( serverAddr ) );
     serverAddr.sin_family = AF_INET;
