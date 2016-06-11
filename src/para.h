@@ -14,6 +14,6 @@
 #define CLIENT_PORT 10260
 #define MSS 512
 #define FILEMAX 10240
-#define THRESHOLD 65535
+#define THRESHOLD 4096
 
 #endif
