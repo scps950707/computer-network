@@ -1,4 +1,4 @@
-CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp
+CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp delay.cpp
 EX1_SRCS = server.cpp
 EX2_SRCS = client.cpp
 EXT = .cpp
@@ -35,4 +35,4 @@ dep:
 		$(CXX) $(CXXFLAGS) -M $(CSRCS) $(EX1_SRCS) $(EX2_SRCS) > $(DEP)
 
 clean:
-		rm -rf $(EXEC1) $(EXEC2) $(EX1_OBJS) $(EX2_OBJS) $(COBJS) $(DEP)
+		rm -rf $(EXEC1) $(EXEC2) $(EX1_OBJS) $(EX2_OBJS) $(COBJS) $(DEP) output

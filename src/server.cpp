@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 17:39
+ * Last Modified:  2016-06-12 02:32
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -20,6 +20,7 @@
 #include "para.h"
 #include "shake.h"
 #include "slow.h"
+#include "delay.h"
 using namespace std;
 
 int main()
@@ -69,7 +70,7 @@ int main()
 
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
-    serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverDelayAck( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
     Packet pktFourShake;

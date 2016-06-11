@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 22:35
+ * Last Modified:  2016-06-12 02:32
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -24,6 +24,7 @@
 #include "shake.h"
 #include "slow.h"
 #include "nat.h"
+#include "delay.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -79,7 +80,7 @@ int main( int argc, char *argv[] )
 
     ClientThreeWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
-    clientSlowStart( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientDelayAck( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
