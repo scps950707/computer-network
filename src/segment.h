@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:57
- * Last Modified:  2016-06-11 04:44
+ * Last Modified:  2016-06-11 17:00
  * Filename:       segment.h
  * Purpose:        homework
  */
@@ -19,6 +19,8 @@ typedef struct tmp
     uint16_t destPort;
     uint32_t seqNum;
     uint32_t ackNum;
+    uint32_t tranSeqNum;
+    uint32_t tranAckNum;
     bool URG;
     bool ACK;
     bool PSH;
@@ -56,6 +58,8 @@ typedef struct tmp
         RST = false;
         SYN = false;
         FIN = false;
+        tranSeqNum = 0;
+        tranAckNum = 0;
         rcvWin = 0;
         checkSum = 0;
         urgDataPtr = 0;

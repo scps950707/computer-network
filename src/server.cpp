@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 16:23
+ * Last Modified:  2016-06-11 17:00
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -87,6 +87,7 @@ int main()
         cout << "cwnd = " << cwnd << ", rwnd = " << pktTransAck.rcvWin << ", threshold = " << THRESHOLD << endl;
         cout << "       Send a packet at : " << cwnd << " byte " << endl;
         Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
+        dataSnd.tranSeqNum = cwnd;
         bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
         memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
         sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
@@ -97,11 +98,7 @@ int main()
             cwnd *= 2;
         }
         recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-#ifdef __TRANSEQ__
-        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.ackNum );
-#else
-        rcvPktNumMsg( pktTransAck.seqNum, cwnd );
-#endif
+        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
     }
     curRcvSeqnum = pktTransAck.seqNum;
 
