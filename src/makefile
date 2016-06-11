@@ -1,4 +1,4 @@
-CSRCS = tool.cpp
+CSRCS = tool.cpp shake.cpp
 EX1_SRCS = server.cpp
 EX2_SRCS = client.cpp
 EXT = .cpp
