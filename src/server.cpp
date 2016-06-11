@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 14:34
+ * Last Modified:  2016-06-11 15:11
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -30,6 +30,7 @@ int main()
 #else
     int currentSeqnum = rand() % 10000 + 1;
 #endif
+    int curRcvSeqnum;
     socklen_t cliSize = sizeof( clientAddr );
     string clientIP;
     uint16_t clientPort;
@@ -62,34 +63,67 @@ int main()
     cout << "Listening for client..." << endl;
     cout << "=====Start the three-way handshake=====" << endl;
 
-    Packet pktRcv;
-    while ( recvfrom( sockFd , &pktRcv, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, &cliSize ) )
+    Packet pktThreeShakeRcv;
+    while ( recvfrom( sockFd , &pktThreeShakeRcv, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, &cliSize ) )
     {
-        if ( pktRcv.SYN == true && pktRcv.ACK == false )
+        if ( pktThreeShakeRcv.SYN == true && pktThreeShakeRcv.ACK == false )
         {
             clientIP = getIpStr( &clientAddr.sin_addr );
-            clientPort = pktRcv.sourcePort;
+            clientPort = pktThreeShakeRcv.sourcePort;
             rcvPktMsg( "SYN", clientIP, clientPort );
-            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
-            Packet synack( SERVER_PORT, clientPort, ++currentSeqnum, pktRcv.seqNum + 1 );
+            rcvPktNumMsg( pktThreeShakeRcv.seqNum, pktThreeShakeRcv.ackNum );
+            Packet synack( SERVER_PORT, clientPort, ++currentSeqnum, pktThreeShakeRcv.seqNum + 1 );
             synack.SYN = true;
             synack.ACK = true;
             sendPktMsg( "SYN/ACK", clientIP, clientPort );
             sendto( sockFd, &synack, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, cliSize );
         }
-        else if ( pktRcv.SYN == false && pktRcv.ACK == true )
+        else if ( pktThreeShakeRcv.SYN == false && pktThreeShakeRcv.ACK == true )
         {
             rcvPktMsg( "ACK", clientIP, clientPort );
-            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
+            rcvPktNumMsg( pktThreeShakeRcv.seqNum, pktThreeShakeRcv.ackNum );
             break;
         }
     }
+    curRcvSeqnum = pktThreeShakeRcv.seqNum;
 
     cout << "=====Complete the three-way handshake=====" << endl;
 
+    int cwnd = 1, sndIndex = 0, byesLeft = FILEMAX;
+    char fileBuf[FILEMAX];
+    string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for ( int i = 0; i < FILEMAX; i++ )
+    {
+        fileBuf[i] = byteList[rand() % 62];
+    }
+
+    cout << "Start to send the file,the file size is 10240 bytes." << endl;
+    cout << "*****Slow start*****" << endl;
+    Packet pktTransAck;
+    pktTransAck.seqNum = curRcvSeqnum;
+    while ( byesLeft > 0 )
+    {
+        cout << "cwnd = " << cwnd << ", rwnd = " << pktTransAck.rcvWin << ", threshold = " << THRESHOLD << endl;
+        cout << "       Send a packet at : " << cwnd << " byte " << endl;
+        Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
+        bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
+        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
+        sendto( sockFd, &dataSnd, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, cliSize );
+        byesLeft -= cwnd;
+        sndIndex += cwnd;
+        recvfrom( sockFd , &pktTransAck, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.ackNum );
+        if ( cwnd < 512 )
+        {
+            cwnd *= 2;
+        }
+    }
+    curRcvSeqnum = pktTransAck.seqNum;
+
+
     cout << "=====Start the four-way handshake=====" << endl;
 
-    Packet fin( SERVER_PORT, clientPort, ++currentSeqnum, pktRcv.seqNum + 1 );
+    Packet fin( SERVER_PORT, clientPort, ++currentSeqnum, curRcvSeqnum + 1 );
     fin.FIN = true;
     sendPktMsg( "FIN", clientIP, clientPort );
     sendto( sockFd, &fin, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, cliSize );
@@ -113,6 +147,7 @@ int main()
             rcvPktNumMsg( pktFourShake.seqNum, pktFourShake.ackNum );
         }
     }
+    curRcvSeqnum = pktFourShake.seqNum;
 
     cout << "=====Complete the four-way handshake=====" << endl;
 

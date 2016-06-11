@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 14:31
+ * Last Modified:  2016-06-11 15:08
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -69,19 +69,19 @@ int main( int argc, char *argv[] )
 
     cout << "=====Start the three-way handshake=====" << endl;
 
-    Packet pktSnd( CLIENT_PORT, serverPort, currentSeqnum, 0 );
-    pktSnd.SYN = true;
+    Packet pktThreeShakeSyn( CLIENT_PORT, serverPort, currentSeqnum, 0 );
+    pktThreeShakeSyn.SYN = true;
     sendPktMsg( "SYN", serverIP, serverPort );
-    sendto( sockFd, &pktSnd, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
+    sendto( sockFd, &pktThreeShakeSyn, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
 
-    Packet pktRcv;
-    while ( recvfrom( sockFd , &pktRcv, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    Packet pktThreeShake;
+    while ( recvfrom( sockFd , &pktThreeShake, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
-        if ( pktRcv.SYN == true && pktRcv.ACK == true )
+        if ( pktThreeShake.SYN == true && pktThreeShake.ACK == true )
         {
-            rcvPktMsg( "SYN/ACK", serverIP, pktRcv.sourcePort );
-            rcvPktNumMsg( pktRcv.seqNum, pktRcv.ackNum );
-            Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktRcv.seqNum + 1 );
+            rcvPktMsg( "SYN/ACK", serverIP, pktThreeShake.sourcePort );
+            rcvPktNumMsg( pktThreeShake.seqNum, pktThreeShake.ackNum );
+            Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktThreeShake.seqNum + 1 );
             ack.ACK = true;
             sendPktMsg( "ACK", serverIP, serverPort );
             sendto( sockFd, &ack, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
@@ -90,6 +90,28 @@ int main( int argc, char *argv[] )
     }
 
     cout << "=====Complete the three-way handshake=====" << endl;
+
+    cout << "Receive a file from " << serverIP << ":" << serverPort << endl;
+
+    Packet pktTransRcv;
+    int cwnd = 1, rwnd = 10240;
+    while ( recvfrom( sockFd , &pktTransRcv, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    {
+        rcvPktNumMsg( pktTransRcv.seqNum, pktTransRcv.ackNum );
+        rwnd -= cwnd;
+        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+        dataAck.rcvWin = rwnd;
+        sendto( sockFd, &dataAck, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
+        if ( cwnd < 512 )
+        {
+            cwnd *= 2;
+        }
+        if(rwnd<=0)
+        {
+            break;
+        }
+    }
+
 
     cout << "=====Start the four-way handshake=====" << endl;
 
