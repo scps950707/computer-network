@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:10
- * Last Modified:  2016-06-11 17:00
+ * Last Modified:  2016-06-11 17:32
  * Filename:       server.cpp
  * Purpose:        homework
  */
@@ -19,6 +19,7 @@
 #include "tool.h"
 #include "para.h"
 #include "shake.h"
+#include "slow.h"
 using namespace std;
 
 int main()
@@ -32,7 +33,6 @@ int main()
     int currentSeqnum = rand() % 10000 + 1;
 #endif
     int curRcvSeqnum;
-    socklen_t cliSize = sizeof( clientAddr );
     string clientIP;
     uint16_t clientPort;
 
@@ -70,36 +70,9 @@ int main()
 
     cout << "=====Complete the three-way handshake=====" << endl;
 
-    int cwnd = 1, sndIndex = 0, byesLeft = FILEMAX;
-    char fileBuf[FILEMAX];
-    string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for ( int i = 0; i < FILEMAX; i++ )
-    {
-        fileBuf[i] = byteList[rand() % 62];
-    }
-
-    cout << "Start to send the file,the file size is 10240 bytes." << endl;
-    cout << "*****Slow start*****" << endl;
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
-    while ( byesLeft > 0 )
-    {
-        cout << "cwnd = " << cwnd << ", rwnd = " << pktTransAck.rcvWin << ", threshold = " << THRESHOLD << endl;
-        cout << "       Send a packet at : " << cwnd << " byte " << endl;
-        Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-        dataSnd.tranSeqNum = cwnd;
-        bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
-        sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
-        byesLeft -= cwnd;
-        sndIndex += cwnd;
-        if ( cwnd < 512 )
-        {
-            cwnd *= 2;
-        }
-        recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
-    }
+    serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
 

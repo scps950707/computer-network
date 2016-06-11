@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 17:00
+ * Last Modified:  2016-06-11 17:32
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -21,6 +21,7 @@
 #include "tool.h"
 #include "para.h"
 #include "shake.h"
+#include "slow.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -38,7 +39,6 @@ int main( int argc, char *argv[] )
 #else
     int currentSeqnum = rand() % 10000 + 1;
 #endif
-    socklen_t serSize = sizeof( serverAddr );
     string serverIP( argv[1] );
     uint16_t serverPort = atoi( argv[2] );
 
@@ -74,24 +74,7 @@ int main( int argc, char *argv[] )
 
     cout << "=====Complete the three-way handshake=====" << endl;
 
-    cout << "Receive a file from " << serverIP << ":" << serverPort << endl;
-
-    Packet pktTransRcv;
-    int rwnd = 10240;
-    while ( recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
-    {
-        rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        rwnd -= pktTransRcv.tranSeqNum;
-        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = pktTransRcv.tranSeqNum < 512 ? pktTransRcv.tranSeqNum * 2 : pktTransRcv.tranSeqNum ;
-        dataAck.rcvWin = rwnd;
-        sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-        if ( rwnd <= 0 )
-        {
-            break;
-        }
-    }
-
+    clientSlowStart( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
     cout << "=====Start the four-way handshake=====" << endl;
 
