@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:09
- * Last Modified:  2016-06-11 04:44
+ * Last Modified:  2016-06-11 14:31
  * Filename:       client.cpp
  * Purpose:        homework
  */
@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdint.h>
 #include "client.h"
 #include "segment.h"
 #include "tool.h"
@@ -31,16 +32,16 @@ int main( int argc, char *argv[] )
     struct sockaddr_in clientAddr;
     struct sockaddr_in serverAddr;
     int sockFd;
-    int serverPort = atoi( argv[2] );
-    string serverIP( argv[1] );
 #ifdef __SEQSTATIC__
     int currentSeqnum = 9230;
 #else
     int currentSeqnum = rand() % 10000 + 1;
 #endif
     socklen_t serSize = sizeof( serverAddr );
+    string serverIP( argv[1] );
+    uint16_t serverPort = atoi( argv[2] );
 
-    bzero( &serverAddr, sizeof( serverAddr ) );
+    bzero( &clientAddr, sizeof( clientAddr ) );
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr = htonl( INADDR_ANY );
     clientAddr.sin_port = htons( CLIENT_PORT );
@@ -71,10 +72,10 @@ int main( int argc, char *argv[] )
     Packet pktSnd( CLIENT_PORT, serverPort, currentSeqnum, 0 );
     pktSnd.SYN = true;
     sendPktMsg( "SYN", serverIP, serverPort );
-    sendto( sockFd, &pktSnd, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+    sendto( sockFd, &pktSnd, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
 
     Packet pktRcv;
-    while ( recvfrom( sockFd , &pktRcv, MSS, 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    while ( recvfrom( sockFd , &pktRcv, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         if ( pktRcv.SYN == true && pktRcv.ACK == true )
         {
@@ -83,7 +84,7 @@ int main( int argc, char *argv[] )
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktRcv.seqNum + 1 );
             ack.ACK = true;
             sendPktMsg( "ACK", serverIP, serverPort );
-            sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+            sendto( sockFd, &ack, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
             break;
         }
     }
@@ -93,7 +94,7 @@ int main( int argc, char *argv[] )
     cout << "=====Start the four-way handshake=====" << endl;
 
     Packet pktFourShake;
-    while ( recvfrom( sockFd , &pktFourShake, MSS, 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    while ( recvfrom( sockFd , &pktFourShake, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         if ( pktFourShake.FIN == true )
         {
@@ -102,11 +103,11 @@ int main( int argc, char *argv[] )
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktFourShake.seqNum + 1 );
             ack.ACK = true;
             sendPktMsg( "ACK", serverIP, serverPort );
-            sendto( sockFd, &ack, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+            sendto( sockFd, &ack, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
             Packet fin( CLIENT_PORT, serverPort, currentSeqnum, pktFourShake.seqNum + 1 );
             fin.FIN = true;
             sendPktMsg( "FIN", serverIP, serverPort );
-            sendto( sockFd, &fin, MSS, 0, ( struct sockaddr * )&serverAddr, serSize );
+            sendto( sockFd, &fin, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, serSize );
         }
         if ( pktFourShake.ACK == true )
         {
