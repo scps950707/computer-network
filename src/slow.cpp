@@ -10,6 +10,10 @@
 #include "slow.h"
 #include "tool.h"
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
@@ -34,6 +38,9 @@ void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_
         }
     }
     cout << "The file transmission finished" << endl;
+    int output = creat("output",0666);
+    write(output,fileBuf,sizeof(fileBuf));
+    close(output);
 }
 
 void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
