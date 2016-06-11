@@ -97,7 +97,11 @@ int main( int argc, char *argv[] )
     int cwnd = 1, rwnd = 10240;
     while ( recvfrom( sockFd , &pktTransRcv, sizeof(Packet), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
+#ifdef __TRANSEQ__
         rcvPktNumMsg( pktTransRcv.seqNum, pktTransRcv.ackNum );
+#else
+        rcvPktNumMsg( cwnd, pktTransRcv.ackNum );
+#endif
         rwnd -= cwnd;
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
         dataAck.rcvWin = rwnd;

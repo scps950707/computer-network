@@ -108,15 +108,19 @@ int main()
         Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
         bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
         memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
-        sendto( sockFd, &dataSnd, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, cliSize );
+        sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
         byesLeft -= cwnd;
         sndIndex += cwnd;
-        recvfrom( sockFd , &pktTransAck, sizeof(Packet), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.ackNum );
         if ( cwnd < 512 )
         {
             cwnd *= 2;
         }
+        recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+#ifdef __TRANSEQ__
+        rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.ackNum );
+#else
+        rcvPktNumMsg( pktTransAck.seqNum, cwnd );
+#endif
     }
     curRcvSeqnum = pktTransAck.seqNum;
 
