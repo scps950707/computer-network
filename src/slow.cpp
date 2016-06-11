@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 16:18
- * Last Modified:  2016-06-11 21:05
+ * Last Modified:  2016-06-12 04:33
  * Filename:       slow.cpp
  * Purpose:        HW
  */
@@ -22,25 +22,26 @@ void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_
     Packet pktTransRcv;
     int rwnd = FILEMAX, rcvIndex = 0;
     char fileBuf[FILEMAX];
-    while ( recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
+    while ( true )
     {
+        recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, ( int )pktTransRcv.tranSeqNum > rwnd ? rwnd : pktTransRcv.tranSeqNum );
-        rwnd -= pktTransRcv.tranSeqNum;
-        rcvIndex += pktTransRcv.tranSeqNum;
-        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = pktTransRcv.tranSeqNum < 512 ? pktTransRcv.tranSeqNum * 2 : pktTransRcv.tranSeqNum ;
-        dataAck.rcvWin = rwnd;
-        sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-        if ( rwnd <= 0 )
+        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, pktTransRcv.tranSize > rwnd ? rwnd : pktTransRcv.tranSize );
+        rwnd -= pktTransRcv.tranSize;
+        rcvIndex += pktTransRcv.tranSize;
+        if ( rwnd < 0 )
         {
             break;
         }
+        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+        dataAck.tranAckNum = rcvIndex + 1;
+        dataAck.rcvWin = rwnd;
+        sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
     }
     cout << "The file transmission finished" << endl;
-    int output = creat("output",0666);
-    write(output,fileBuf,sizeof(fileBuf));
-    close(output);
+    int output = creat( "output", 0666 );
+    write( output, fileBuf, sizeof( fileBuf ) );
+    close( output );
 }
 
 void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
@@ -56,17 +57,22 @@ void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, soc
 
     cout << "Start to send the file,the file size is 10240 bytes." << endl;
     cout << "*****Slow start*****" << endl;
-    while ( byesLeft > 0 )
+    while ( true )
     {
         cout << "cwnd = " << cwnd << ", rwnd = " << pktTransAck.rcvWin << ", threshold = " << THRESHOLD << endl;
-        cout << "       Send a packet at : " << cwnd << " byte " << endl;
+        cout << "       Send a packet at : " << sndIndex + 1 << " byte " << endl;
         Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-        dataSnd.tranSeqNum = cwnd;
+        dataSnd.tranSeqNum = sndIndex + 1;
+        dataSnd.tranSize = cwnd;
         bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
         memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
         sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
         byesLeft -= cwnd;
         sndIndex += cwnd;
+        if ( byesLeft < 0 )
+        {
+            break;
+        }
         if ( cwnd < 512 )
         {
             cwnd *= 2;

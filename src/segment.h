@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:57
- * Last Modified:  2016-06-11 17:00
+ * Last Modified:  2016-06-12 04:33
  * Filename:       segment.h
  * Purpose:        homework
  */
@@ -30,6 +30,7 @@ typedef struct tmp
     uint16_t rcvWin;
     uint16_t checkSum;
     uint16_t urgDataPtr;
+    uint16_t tranSize;
     uint32_t options;
     char appData[MSS];
     tmp()
@@ -48,6 +49,7 @@ typedef struct tmp
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
+        tranSize = 0;
     }
     tmp( uint16_t sourcePort, uint16_t destPort, uint32_t seqNum, uint32_t ackNum )
         : sourcePort( sourcePort ), destPort( destPort ), seqNum( seqNum ), ackNum( ackNum )
@@ -64,6 +66,7 @@ typedef struct tmp
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
+        tranSize = 0;
     }
 } __attribute__( ( packed ) )
 Packet;
