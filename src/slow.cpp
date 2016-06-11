@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 16:18
- * Last Modified:  2016-06-11 17:32
+ * Last Modified:  2016-06-11 21:05
  * Filename:       slow.cpp
  * Purpose:        HW
  */
@@ -13,14 +13,17 @@
 
 void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
-    cout << "Receive a file from " << serverIP << ":" << serverPort << endl;
+    cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
-    int rwnd = FILEMAX;
+    int rwnd = FILEMAX, rcvIndex = 0;
+    char fileBuf[FILEMAX];
     while ( recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize ) )
     {
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
+        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, ( int )pktTransRcv.tranSeqNum > rwnd ? rwnd : pktTransRcv.tranSeqNum );
         rwnd -= pktTransRcv.tranSeqNum;
+        rcvIndex += pktTransRcv.tranSeqNum;
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
         dataAck.tranAckNum = pktTransRcv.tranSeqNum < 512 ? pktTransRcv.tranSeqNum * 2 : pktTransRcv.tranSeqNum ;
         dataAck.rcvWin = rwnd;
