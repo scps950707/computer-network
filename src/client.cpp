@@ -25,6 +25,7 @@
 #include "slow.h"
 #include "nat.h"
 #include "delay.h"
+#include "conavoid.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -80,7 +81,7 @@ int main( int argc, char *argv[] )
 
     ClientThreeWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
-    clientDelayAck( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientConAvoid( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 

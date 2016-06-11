@@ -21,6 +21,7 @@
 #include "shake.h"
 #include "slow.h"
 #include "delay.h"
+#include "conavoid.h"
 using namespace std;
 
 int main()
@@ -70,7 +71,7 @@ int main()
 
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
-    serverDelayAck( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
     Packet pktFourShake;
