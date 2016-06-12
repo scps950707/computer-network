@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 16:18
- * Last Modified:  2016-06-12 05:21
+ * Last Modified:  2016-06-12 20:42
  * Filename:       delay.cpp
  * Purpose:        HW
  */
@@ -20,7 +20,8 @@ void clientDelayAck( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
-    int rwnd = FILEMAX, rcvIndex = 0;
+    int rwnd = FILEMAX;
+    int rcvIndex = 0;
     char fileBuf[FILEMAX];
     int pktCount = 1;
     while ( true )
@@ -36,7 +37,6 @@ void clientDelayAck( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t
         }
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
         dataAck.tranAckNum = rcvIndex + 1;
-        dataAck.rcvWin = rwnd;
         if ( pktCount % 2 == 0 )
         {
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
@@ -52,7 +52,9 @@ void clientDelayAck( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t
 void serverDelayAck( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
 {
     socklen_t cliSize = sizeof( clientAddr );
-    int cwnd = 1, sndIndex = 0, byesLeft = FILEMAX;
+    int cwnd = 1;
+    int rwnd = pktTransAck.rcvWin;
+    int sndIndex = 0;
     char fileBuf[FILEMAX];
     string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for ( int i = 0; i < FILEMAX; i++ )
@@ -65,17 +67,17 @@ void serverDelayAck( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sock
     cout << "*****Slow start*****" << endl;
     while ( true )
     {
-        cout << "cwnd = " << cwnd << ", rwnd = " << pktTransAck.rcvWin << ", threshold = " << THRESHOLD << endl;
-        cout << "       Send a packet at : " << sndIndex + 1 << " byte " << endl;
+        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd << ", threshold = " << THRESHOLD << endl;
+        cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
         Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
         dataSnd.tranSeqNum = sndIndex + 1;
         dataSnd.tranSize = cwnd;
         bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], byesLeft < cwnd ? byesLeft : cwnd );
+        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], rwnd < cwnd ? rwnd : cwnd );
         sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
-        byesLeft -= cwnd;
+        rwnd -= cwnd;
         sndIndex += cwnd;
-        if ( byesLeft < 0 )
+        if ( rwnd < 0 )
         {
             break;
         }
