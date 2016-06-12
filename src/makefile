@@ -19,9 +19,6 @@ debug: all
 seq: CXXFLAGS += -D__SEQSTATIC__
 seq: all
 
-transeq: CXXFLAGS += -D__TRANSEQ__
-transeq: all
-
 $(EXEC1): $(COBJS) $(EX1_OBJS)
 		$(CXX) $(CXXFLAGS) -o $@ $(COBJS) $(EX1_OBJS)
 
