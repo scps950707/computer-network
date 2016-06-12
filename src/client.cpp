@@ -26,7 +26,6 @@ int main( int argc, char *argv[] )
     {
         cout << "./Prog [server IP] [PORT]";
     }
-    srand( time( NULL ) );
     struct sockaddr_in clientAddr;
     struct sockaddr_in serverAddr;
     int sockFd;
