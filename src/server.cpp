@@ -71,8 +71,8 @@ int main()
 
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
-    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     pktTransAck.rcvWin = pktThreeShakeRcv.rcvWin;
+    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
     Packet pktFourShake;
