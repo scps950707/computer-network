@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-10 16:57
- * Last Modified:  2016-06-12 04:33
+ * Last Modified:  2016-06-12 21:52
  * Filename:       segment.h
  * Purpose:        homework
  */
@@ -68,7 +68,7 @@ typedef struct tmp
         options = 0;
         tranSize = 0;
     }
-} __attribute__( ( packed ) )
+}
 Packet;
 
 #endif
