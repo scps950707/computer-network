@@ -31,5 +31,5 @@ void rcvPktMsg( string type, string ip, int port )
 
 void rcvPktNumMsg( int seqNum, int ackNum )
 {
-    cout << "       Receive a packet (seq_num = " << seqNum << ", ack_num = " << ackNum << ")" << endl;
+    cout << "\tReceive a packet (seq_num = " << seqNum << ", ack_num = " << ackNum << ")" << endl;
 }
