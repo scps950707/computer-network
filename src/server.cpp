@@ -14,6 +14,7 @@
 #include "slow.h"
 #include "delay.h"
 #include "conavoid.h"
+#include "fastretrans.h"
 using namespace std;
 
 int main()
@@ -64,7 +65,7 @@ int main()
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
     pktTransAck.rcvWin = pktThreeShakeRcv.rcvWin;
-    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverFastReTrans( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
     curRcvSeqnum = pktTransAck.seqNum;
 
     Packet pktFourShake;
