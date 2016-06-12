@@ -10,7 +10,7 @@
 #ifndef __SEGMENT_H__
 #define __SEGMENT_H__
 
-#include "stdint.h"
+#include <stdint.h>
 #include "para.h"
 
 typedef struct tmp

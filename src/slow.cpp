@@ -7,13 +7,11 @@
  * Purpose:        HW
  */
 
-#include "slow.h"
-#include "tool.h"
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "slow.h"
+#include "tool.h"
 
 void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {

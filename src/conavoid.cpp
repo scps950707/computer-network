@@ -7,16 +7,12 @@
  * Purpose:        HW
  */
 
-#include "delay.h"
-#include "tool.h"
-#include "conavoid.h"
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <vector>
-#include <stdint.h>
+#include "tool.h"
+#include "conavoid.h"
 
 void clientConAvoid( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {

@@ -10,8 +10,6 @@
 #ifndef __SLOW_H__
 #define __SLOW_H__
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <iostream>
 #include "segment.h"

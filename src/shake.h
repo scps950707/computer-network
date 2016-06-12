@@ -11,12 +11,9 @@
 #ifndef __SHAKE_H__
 #define __SHAKE_H__
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <iostream>
 #include <stdint.h>
-#include "tool.h"
 #include "segment.h"
 using namespace std;
 

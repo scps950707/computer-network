@@ -10,8 +10,6 @@
 #ifndef __CONGENAVOID_H__
 #define __CONGENAVOID_H__
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <iostream>
 #include "segment.h"

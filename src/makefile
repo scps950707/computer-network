@@ -1,4 +1,4 @@
-CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp delay.cpp conavoid.cpp
+CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp delay.cpp conavoid.cpp fastretrans.cpp
 EX1_SRCS = server.cpp
 EX2_SRCS = client.cpp
 EXT = .cpp

@@ -9,6 +9,7 @@
 
 
 #include "shake.h"
+#include "tool.h"
 
 void ServerThreeWayHandShake( int &sockFd, int &currentSeqnum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktThreeShakeRcv )
 {

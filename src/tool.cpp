@@ -7,9 +7,8 @@
  * Purpose:        homework
  */
 
-#include<iostream>
+#include <iostream>
 #include <arpa/inet.h>
-#include "tool.h"
 using namespace std;
 
 string getIpStr( const void *src )

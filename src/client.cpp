@@ -8,19 +8,11 @@
  */
 
 #include <iostream>
-#include <netdb.h>
 #include <sys/socket.h>
-#include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <time.h>
-#include <stdint.h>
-#include <map>
 #include "client.h"
-#include "segment.h"
 #include "tool.h"
-#include "para.h"
 #include "shake.h"
 #include "slow.h"
 #include "nat.h"

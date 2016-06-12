@@ -7,17 +7,9 @@
  * Purpose:        homework
  */
 
-#include <iostream>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include <stdint.h>
 #include "server.h"
-#include "segment.h"
-#include "tool.h"
-#include "para.h"
 #include "shake.h"
 #include "slow.h"
 #include "delay.h"

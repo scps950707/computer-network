@@ -7,8 +7,9 @@
  * Purpose:        hw
  */
 
-#include "nat.h"
 #include <iostream>
+#include "nat.h"
+
 void createNatTable( map<string, string> &table )
 {
     table.insert( pair<string, string>( "192.168.0.2", "192.168.0.1" ) );
