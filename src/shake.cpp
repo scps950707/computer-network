@@ -86,6 +86,7 @@ void ClientThreeWayHandShake( int &sockFd, int &currentSeqnum, string &serverIP,
             rcvPktNumMsg( pktThreeShake.seqNum, pktThreeShake.ackNum );
             Packet ack( CLIENT_PORT, serverPort, ++currentSeqnum, pktThreeShake.seqNum + 1 );
             ack.ACK = true;
+            ack.rcvWin = FILEMAX;
             sendPktMsg( "ACK", serverIP, serverPort );
             sendto( sockFd, &ack, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
             break;
