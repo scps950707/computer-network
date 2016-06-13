@@ -23,6 +23,7 @@ using namespace std;
 
 int main( int argc, char *argv[] )
 {
+    srand( time( NULL ) );
     if ( argc != 3 )
     {
         cout << "./Prog [server IP] [PORT]";
@@ -40,7 +41,8 @@ int main( int argc, char *argv[] )
 
     map<string, string> table;
     createNatTable( table );
-    string defaultIP = "192.168.0.2";
+    string defaultIP = "192.168.0.";
+    defaultIP += ( char )( rand() % 4 + 2 + '0' ) ;
     bzero( &clientAddr, sizeof( clientAddr ) );
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr = inet_addr( defaultIP.c_str() );
