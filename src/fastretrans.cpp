@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-12 22:39
- * Last Modified:  2016-06-12 22:39
+ * Last Modified:  2016-06-14 02:36
  * Filename:       fastretrans.cpp
  * Purpose:        hw
  */
@@ -16,6 +16,7 @@
 #include "segment.h"
 #include "tool.h"
 #include "para.h"
+#define PKTLOSSNUM 2048
 
 void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
@@ -28,7 +29,7 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     int fakecount = 0;
     while ( true )
     {
-        if ( lastTranSeqNum != 2048 || simulated )
+        if ( lastTranSeqNum != PKTLOSSNUM || simulated )
         {
             lastTranSeqNum = pktTransRcv.tranSeqNum;
         }
@@ -39,15 +40,15 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
         {
             break;
         }
-        if ( ( pktTransRcv.tranSeqNum == 2048 || lastTranSeqNum == 2048 ) && !simulated )
+        if ( ( pktTransRcv.tranSeqNum == PKTLOSSNUM || lastTranSeqNum == PKTLOSSNUM ) && !simulated )
         {
             if ( ++fakecount == 2 )
             {
                 simulated = true;
             }
-            lastTranSeqNum = 2048;
+            lastTranSeqNum = PKTLOSSNUM;
             Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = 2048;
+            dataAck.tranAckNum = PKTLOSSNUM;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
         }
         else
