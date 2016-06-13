@@ -46,7 +46,7 @@ void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, soc
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
-    int rwnd = pktTransAck.rcvWin;
+    int rwnd = pktTransAck.rwnd;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
     string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

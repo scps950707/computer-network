@@ -64,7 +64,7 @@ int main()
 
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
-    pktTransAck.rcvWin = pktThreeShakeRcv.rcvWin;
+    pktTransAck.rwnd = pktThreeShakeRcv.rwnd;
 #ifdef __SLOW__
     serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
 #elif __DELAY__

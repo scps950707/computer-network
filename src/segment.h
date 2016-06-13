@@ -27,7 +27,7 @@ typedef struct tmp
     bool RST;
     bool SYN;
     bool FIN;
-    uint16_t rcvWin;
+    uint16_t rwnd;
     uint16_t checkSum;
     uint16_t urgDataPtr;
     uint16_t tranSize;
@@ -45,7 +45,7 @@ typedef struct tmp
         RST = false;
         SYN = false;
         FIN = false;
-        rcvWin = 0;
+        rwnd = 0;
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
@@ -62,7 +62,7 @@ typedef struct tmp
         FIN = false;
         tranSeqNum = 0;
         tranAckNum = 0;
-        rcvWin = 0;
+        rwnd = 0;
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
