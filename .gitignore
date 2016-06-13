@@ -30,3 +30,6 @@
 
 # Debug files
 *.dSYM/
+src/client
+src/output
+src/server
