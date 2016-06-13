@@ -18,17 +18,15 @@ void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
-    int rwnd = FILEMAX;
     int rcvIndex = 0;
     char fileBuf[FILEMAX];
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, pktTransRcv.tranSize > rwnd ? rwnd : pktTransRcv.tranSize );
-        rwnd -= pktTransRcv.tranSize;
+        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, pktTransRcv.tranSize );
         rcvIndex += pktTransRcv.tranSize;
-        if ( rwnd < 0 )
+        if ( pktTransRcv.transEnd )
         {
             break;
         }
@@ -46,7 +44,9 @@ void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, soc
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
+    int preCwnd = 0;
     int rwnd = pktTransAck.rwnd;
+    int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
     string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -59,20 +59,22 @@ void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, soc
     cout << "*****Slow start*****" << endl;
     while ( true )
     {
-        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd << ", threshold = " << THRESHOLD << endl;
+        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd << ", threshold = " << THRESHOLD << endl;
         cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
         Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
         dataSnd.tranSeqNum = sndIndex + 1;
-        dataSnd.tranSize = cwnd;
+        dataSnd.tranSize = bytesLeft < cwnd ? bytesLeft : cwnd;
+        dataSnd.transEnd = bytesLeft < cwnd;
         bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], rwnd < cwnd ? rwnd : cwnd );
+        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
         sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
-        rwnd -= cwnd;
-        sndIndex += cwnd;
-        if ( rwnd < 0 )
+        bytesLeft -= dataSnd.tranSize;
+        sndIndex += dataSnd.tranSize;
+        if ( bytesLeft <= 0 )
         {
             break;
         }
+        preCwnd = cwnd;
         if ( cwnd < 512 )
         {
             cwnd *= 2;
