@@ -1,9 +1,9 @@
 /*
  * Author:         scps950707
  * Email:          scps950707@gmail.com
- * Created:        2016-06-12 22:39
- * Last Modified:  2016-06-14 02:36
- * Filename:       fastretrans.cpp
+ * Created:        2016-06-14 02:47
+ * Last Modified:  2016-06-14 02:47
+ * Filename:       fastrecovery.cpp
  * Purpose:        hw
  */
 
@@ -12,13 +12,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <vector>
-#include "fastretrans.h"
+#include "fastrecovery.h"
 #include "segment.h"
 #include "tool.h"
 #include "para.h"
 #define PKTLOSSNUM 2048
 
-void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
+void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
@@ -64,7 +64,7 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     close( output );
 }
 
-void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
+void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
@@ -133,10 +133,10 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                 {
                     cout << endl;
                     cout << "Receive three Dup Acks" << endl;
-                    cout << "******FAST RETRANSMIT*****" << endl;
+                    cout << "******FAST RECOVERY*****" << endl;
                     cout << endl;
                     threshold = cwnd / 2;
-                    cwnd = 1;
+                    cwnd /= 2;
                     preCwnd = 0;
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
                     sndIndex = lastAckNum - 1;
@@ -158,6 +158,10 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
             cwnd *= 2;
         }
         else if ( state == CONAVOID )
+        {
+            cwnd += MSS;
+        }
+        else if ( state == FASTRECOVERY )
         {
             cwnd += MSS;
         }

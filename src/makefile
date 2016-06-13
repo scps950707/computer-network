@@ -1,4 +1,4 @@
-CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp delay.cpp conavoid.cpp fastretrans.cpp
+CSRCS = tool.cpp shake.cpp slow.cpp nat.cpp delay.cpp conavoid.cpp fastretrans.cpp fastrecovery.cpp
 EX1_SRCS = server.cpp
 EX2_SRCS = client.cpp
 EXT = .cpp
@@ -35,6 +35,10 @@ endif
 
 ifdef fastre
 CXXFLAGS += -D__FASTRE__
+endif
+
+ifdef fastcov
+CXXFLAGS += -D__FASTCOV__
 endif
 
 $(EXEC1): $(COBJS) $(EX1_OBJS)

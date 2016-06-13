@@ -15,6 +15,7 @@
 #include "delay.h"
 #include "conavoid.h"
 #include "fastretrans.h"
+#include "fastrecovery.h"
 using namespace std;
 
 int main()
@@ -73,6 +74,8 @@ int main()
     serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
 #elif __FASTRE__
     serverFastReTrans( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#elif __FASTCOV__
+    serverFastRecovery( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
 #endif
     curRcvSeqnum = pktTransAck.seqNum;
 
