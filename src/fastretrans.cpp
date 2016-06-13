@@ -49,7 +49,7 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
         if ( ( pktTransRcv.tranSeqNum == 2048 || lastTranSeqNum == 2048 ) && !simulated )
         {
             lastTranSeqNum = 2048;
-            Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+            Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
             dataAck.tranAckNum = 2048;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
         }
