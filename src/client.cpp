@@ -75,7 +75,15 @@ int main( int argc, char *argv[] )
 
     ClientThreeWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 
+#ifdef __SLOW__
+    clientSlowStart( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+#elif __DELAY__
+    clientDelayAck( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+#elif __CONAVOID__
+    clientConAvoid( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+#elif __FASTRE__
     clientFastReTrans( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+#endif
 
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 

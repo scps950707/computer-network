@@ -13,11 +13,29 @@ DEP = dep
 
 all: $(EXEC1) $(EXEC2)
 
-debug: CXXFLAGS += -D__DEBUG__
-debug: all
+ifdef debug
+CXXFLAGS += -D__DEBUG__
+endif
 
-seq: CXXFLAGS += -D__SEQSTATIC__
-seq: all
+ifdef seq
+CXXFLAGS += -D__SEQSTATIC__
+endif
+
+ifdef slow
+CXXFLAGS += -D__SLOW__
+endif
+
+ifdef delay
+CXXFLAGS += -D__DELAY__
+endif
+
+ifdef conavoid
+CXXFLAGS += -D__CONAVOID__
+endif
+
+ifdef fastre
+CXXFLAGS += -D__FASTRE__
+endif
 
 $(EXEC1): $(COBJS) $(EX1_OBJS)
 		$(CXX) $(CXXFLAGS) -o $@ $(COBJS) $(EX1_OBJS)

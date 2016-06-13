@@ -65,7 +65,15 @@ int main()
     Packet pktTransAck;
     pktTransAck.seqNum = curRcvSeqnum;
     pktTransAck.rcvWin = pktThreeShakeRcv.rcvWin;
+#ifdef __SLOW__
+    serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#elif __DELAY__
+    serverDelayAck( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#elif __CONAVOID__
+    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#elif __FASTRE__
     serverFastReTrans( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#endif
     curRcvSeqnum = pktTransAck.seqNum;
 
     Packet pktFourShake;
