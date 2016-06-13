@@ -23,8 +23,22 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
+    uint32_t lastTranSeqNum = 0;
+    int simulated = false;
+    int fakecount = 0;
     while ( true )
     {
+        if ( lastTranSeqNum == 2048 && !simulated )
+        {
+            if ( ++fakecount == 2 )
+            {
+                simulated = true;
+            }
+        }
+        else
+        {
+            lastTranSeqNum = pktTransRcv.tranSeqNum;
+        }
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
         memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
@@ -32,9 +46,19 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
         {
             break;
         }
-        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
-        sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
+        if ( ( pktTransRcv.tranSeqNum == 2048 || lastTranSeqNum == 2048 ) && !simulated )
+        {
+            lastTranSeqNum = 2048;
+            Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+            dataAck.tranAckNum = 2048;
+            sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
+        }
+        else
+        {
+            Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+            dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
+        }
     }
     cout << "The file transmission finished" << endl;
     int output = creat( "output", 0666 );
@@ -57,9 +81,13 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
         fileBuf[i] = byteList[rand() % 62];
     }
 
+    int dupAckCnt = 0;
+    uint32_t lastAckNum = 0;
+
     int state = SLOWSTART;
     cout << "Start to send the file,the file size is 10240 bytes." << endl;
     cout << "*****Slow start*****" << endl;
+    bool jumpout = false;
     while ( true )
     {
         if ( state == SLOWSTART && cwnd >= THRESHOLD )
@@ -97,13 +125,35 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                 break;
             }
             preCwnd = cwnd;
+            lastAckNum = pktTransAck.tranAckNum;
             recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-            /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
-            msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
+            rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
+            if ( lastAckNum == pktTransAck.tranAckNum )
+            {
+                if ( ++dupAckCnt == 2 )
+                {
+                    cout << endl;
+                    cout << "Receive three Dup Acks" << endl;
+                    cout << "******FAST RETRANSMIT*****" << endl;
+                    cout << endl;
+                    cwnd = 1;
+                    preCwnd = 0;
+                    bytesLeft = FILEMAX - ( lastAckNum - 1 );
+                    CHECKVAR(bytesLeft);
+                    sndIndex = lastAckNum-1;
+                    CHECKVAR(sndIndex);
+                    jumpout = true;
+                    break;
+                }
+            }
+            else
+            {
+                jumpout = false;
+            }
         }
-        for ( unsigned int i = 0; i < msgBuf.size(); i++ )
+        if ( jumpout )
         {
-            rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );
+            continue;
         }
         if ( state == SLOWSTART )
         {
