@@ -28,14 +28,7 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     int fakecount = 0;
     while ( true )
     {
-        if ( lastTranSeqNum == 2048 && !simulated )
-        {
-            if ( ++fakecount == 2 )
-            {
-                simulated = true;
-            }
-        }
-        else
+        if ( lastTranSeqNum != 2048 || simulated )
         {
             lastTranSeqNum = pktTransRcv.tranSeqNum;
         }
@@ -48,6 +41,10 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
         }
         if ( ( pktTransRcv.tranSeqNum == 2048 || lastTranSeqNum == 2048 ) && !simulated )
         {
+            if ( ++fakecount == 2 )
+            {
+                simulated = true;
+            }
             lastTranSeqNum = 2048;
             Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
             dataAck.tranAckNum = 2048;
@@ -139,9 +136,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                     cwnd = 1;
                     preCwnd = 0;
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
-                    CHECKVAR(bytesLeft);
-                    sndIndex = lastAckNum-1;
-                    CHECKVAR(sndIndex);
+                    sndIndex = lastAckNum - 1;
                     jumpout = true;
                     break;
                 }
