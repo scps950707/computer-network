@@ -11,11 +11,9 @@
 #include <arpa/inet.h>
 using namespace std;
 
-string getIpStr( const void *src )
+string getIpStr( struct in_addr *src )
 {
-    char ip[INET_ADDRSTRLEN];
-    inet_ntop( AF_INET, src, ip, INET_ADDRSTRLEN );
-    return string( ip );
+    return string (inet_ntoa(*src));
 }
 
 void sendPktMsg( string type, string ip, int port )

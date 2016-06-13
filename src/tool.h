@@ -12,7 +12,7 @@ using namespace std;
 #define __TOOLS_H__
 
 #include<iostream>
-string getIpStr( const void *src );
+string getIpStr( struct in_addr *src );
 void sendPktMsg( string type, string ip, int port );
 void rcvPktMsg( string type, string ip, int port );
 void rcvPktNumMsg( int seqNum, int ackNum );
