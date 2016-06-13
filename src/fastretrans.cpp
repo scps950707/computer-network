@@ -80,6 +80,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
 
     int dupAckCnt = 0;
     uint32_t lastAckNum = 0;
+    int threshold = THRESHOLD;
 
     int state = SLOWSTART;
     cout << "Start to send the file,the file size is 10240 bytes." << endl;
@@ -87,7 +88,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
     bool jumpout = false;
     while ( true )
     {
-        if ( state == SLOWSTART && cwnd >= THRESHOLD )
+        if ( state == SLOWSTART && cwnd >= threshold )
         {
             cout << "**********Start Congestion Avoidance*********" << endl;
             state = CONAVOID;
@@ -104,7 +105,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
             cnt = 1;
             siz = cwnd;
         }
-        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd << ", threshold = " << THRESHOLD << endl;
+        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd << ", threshold = " << threshold << endl;
         for ( int i = 0; i < cnt; i++ )
         {
             cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
@@ -138,6 +139,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
                     sndIndex = lastAckNum - 1;
                     jumpout = true;
+                    threshold /= 4;
                     break;
                 }
             }
