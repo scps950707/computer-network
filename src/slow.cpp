@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 16:18
- * Last Modified:  2016-06-12 20:42
+ * Last Modified:  2016-06-13 23:03
  * Filename:       slow.cpp
  * Purpose:        HW
  */
@@ -18,20 +18,18 @@ void clientSlowStart( int &sockFd, int &currentSeqnum, string &serverIP, uint16_
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
-    int rcvIndex = 0;
     char fileBuf[FILEMAX];
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, pktTransRcv.tranSize );
-        rcvIndex += pktTransRcv.tranSize;
+        memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
         if ( pktTransRcv.transEnd )
         {
             break;
         }
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = rcvIndex + 1;
+        dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
         sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
     }
     cout << "The file transmission finished" << endl;

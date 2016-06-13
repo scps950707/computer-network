@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-11 16:18
- * Last Modified:  2016-06-12 20:42
+ * Last Modified:  2016-06-13 23:03
  * Filename:       delay.cpp
  * Purpose:        HW
  */
@@ -18,21 +18,19 @@ void clientDelayAck( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
-    int rcvIndex = 0;
     char fileBuf[FILEMAX];
     int pktCount = 1;
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[rcvIndex], pktTransRcv.appData, pktTransRcv.tranSize );
-        rcvIndex += pktTransRcv.tranSize;
+        memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
         if ( pktTransRcv.transEnd )
         {
             break;
         }
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = rcvIndex + 1;
+        dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
         if ( pktCount % 2 == 0 )
         {
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
@@ -65,36 +63,51 @@ void serverDelayAck( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sock
     cout << "*****Slow start*****" << endl;
     while ( true )
     {
-        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd  << ", threshold = " << THRESHOLD << endl;
-        cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
-        Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-        dataSnd.tranSeqNum = sndIndex + 1;
-        dataSnd.tranSize = bytesLeft < cwnd ? bytesLeft : cwnd;
-        dataSnd.transEnd = bytesLeft < cwnd;
-        bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-        memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
-        sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
-        bytesLeft -= dataSnd.tranSize;
-        sndIndex += dataSnd.tranSize;
+        int cnt, siz;
+        if ( cwnd > MSS )
+        {
+            cnt = cwnd / MSS + ( ( cwnd % MSS == 0 ) ? 0 : 1 );
+            siz = MSS;
+        }
+        else
+        {
+            cnt = 1;
+            siz = cwnd;
+        }
+        cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd << ", threshold = " << THRESHOLD << endl;
+        for ( int i = 0; i < cnt; i++ )
+        {
+            cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
+            Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
+            dataSnd.tranSeqNum = sndIndex + 1;
+            dataSnd.tranSize = bytesLeft < siz ? bytesLeft : siz;
+            dataSnd.transEnd = bytesLeft < siz;
+            bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
+            memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
+            sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
+            bytesLeft -= siz;
+            sndIndex += siz;
+            if ( bytesLeft <= 0 )
+            {
+                break;
+            }
+            preCwnd = cwnd;
+            if ( pktCount % 2 == 0 )
+            {
+                recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+                rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
+            }
+            else
+            {
+                pktTransAck.seqNum++;
+            }
+            pktCount++;
+        }
+        cwnd *= 2;
         if ( bytesLeft <= 0 )
         {
             break;
         }
-        preCwnd = cwnd;
-        if ( cwnd < 512 )
-        {
-            cwnd *= 2;
-        }
-        if ( pktCount % 2 == 0 )
-        {
-            recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-            rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
-        }
-        else
-        {
-            pktTransAck.seqNum++;
-        }
-        pktCount++;
     }
     cout << "The file transmission finished" << endl;
 }
