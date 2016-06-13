@@ -24,7 +24,9 @@ using namespace std;
 
 int main( int argc, char *argv[] )
 {
+#ifdef __USESRAND__
     srand( time( NULL ) );
+#endif
     if ( argc != 3 )
     {
         cout << "./Prog [server IP] [PORT]";

@@ -20,6 +20,9 @@ using namespace std;
 
 int main()
 {
+#ifdef __USESRAND__
+    srand( time( NULL ) );
+#endif
     struct sockaddr_in serverAddr;
     struct sockaddr_in clientAddr;
     int sockFd;

@@ -28,6 +28,9 @@ void rcvPktNumMsg( int seqNum, int ackNum )
 
 void randFile( char *src, int size )
 {
+#ifdef __USESRAND__
+    srand( time( NULL ) );
+#endif
     string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for ( int i = 0; i < size; i++ )
     {

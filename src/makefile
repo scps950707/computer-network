@@ -21,6 +21,10 @@ ifdef seq
 CXXFLAGS += -D__SEQSTATIC__
 endif
 
+ifdef rand
+CXXFLAGS += -D__USESRAND__
+endif
+
 ifdef slow
 CXXFLAGS += -D__SLOW__
 endif
