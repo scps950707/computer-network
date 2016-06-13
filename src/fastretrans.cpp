@@ -23,7 +23,6 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
-    int pktCount = 1;
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
@@ -34,12 +33,8 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
             break;
         }
         Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        if ( pktCount % 2 == 0 )
-        {
-            sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-        }
-        pktCount++;
         dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+        sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
     }
     cout << "The file transmission finished" << endl;
     int output = creat( "output", 0666 );
@@ -62,7 +57,6 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
         fileBuf[i] = byteList[rand() % 62];
     }
 
-    int pktCount = 1;
     int state = SLOWSTART;
     cout << "Start to send the file,the file size is 10240 bytes." << endl;
     cout << "*****Slow start*****" << endl;
@@ -103,17 +97,9 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                 break;
             }
             preCwnd = cwnd;
-            if ( pktCount % 2 == 0 )
-            {
-                recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-                /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
-                msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
-            }
-            else
-            {
-                pktTransAck.seqNum++;
-            }
-            pktCount++;
+            recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+            /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
+            msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
         }
         for ( unsigned int i = 0; i < msgBuf.size(); i++ )
         {
