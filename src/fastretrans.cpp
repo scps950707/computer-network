@@ -135,12 +135,12 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                     cout << "Receive three Dup Acks" << endl;
                     cout << "******FAST RETRANSMIT*****" << endl;
                     cout << endl;
+                    threshold = cwnd/2;
                     cwnd = 1;
                     preCwnd = 0;
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
                     sndIndex = lastAckNum - 1;
                     jumpout = true;
-                    threshold /= 4;
                     break;
                 }
             }
