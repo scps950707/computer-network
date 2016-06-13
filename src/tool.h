@@ -16,5 +16,6 @@ using namespace std;
 void sendPktMsg( string type, string ip, int port );
 void rcvPktMsg( string type, string ip, int port );
 void rcvPktNumMsg( int seqNum, int ackNum );
+void randFile( char *src, int size );
 
 #endif

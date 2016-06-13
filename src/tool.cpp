@@ -8,6 +8,7 @@
  */
 
 #include <iostream>
+#include <stdlib.h>
 using namespace std;
 
 void sendPktMsg( string type, string ip, int port )
@@ -23,4 +24,13 @@ void rcvPktMsg( string type, string ip, int port )
 void rcvPktNumMsg( int seqNum, int ackNum )
 {
     cout << "\tReceive a packet (seq_num = " << seqNum << ", ack_num = " << ackNum << ")" << endl;
+}
+
+void randFile( char *src, int size )
+{
+    string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for ( int i = 0; i < size; i++ )
+    {
+        src[i] = byteList[rand() % byteList.length()];
+    }
 }

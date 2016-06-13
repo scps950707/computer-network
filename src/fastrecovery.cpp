@@ -73,11 +73,7 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
     int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
-    string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for ( int i = 0; i < FILEMAX; i++ )
-    {
-        fileBuf[i] = byteList[rand() % 62];
-    }
+    randFile( fileBuf, FILEMAX );
 
     int dupAckCnt = 0;
     uint32_t lastAckNum = 0;

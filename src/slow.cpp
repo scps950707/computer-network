@@ -47,11 +47,7 @@ void serverSlowStart( int &sockFd, int &currentSeqnum, uint16_t &clientPort, soc
     int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
-    string byteList = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for ( int i = 0; i < FILEMAX; i++ )
-    {
-        fileBuf[i] = byteList[rand() % 62];
-    }
+    randFile( fileBuf, FILEMAX );
 
     cout << "Start to send the file,the file size is 10240 bytes." << endl;
     cout << "*****Slow start*****" << endl;
