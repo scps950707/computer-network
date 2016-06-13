@@ -43,12 +43,12 @@ int main( int argc, char *argv[] )
     string defaultIP = "192.168.0.2";
     bzero( &clientAddr, sizeof( clientAddr ) );
     clientAddr.sin_family = AF_INET;
-    clientAddr.sin_addr.s_addr = inet_addr(defaultIP.c_str());
+    clientAddr.sin_addr.s_addr = inet_addr( defaultIP.c_str() );
     clientAddr.sin_port = htons( CLIENT_PORT );
 
     cout << "client IP:" <<  getIpStr( &clientAddr.sin_addr ) << endl;
     cout << "translate IP to " << table[defaultIP] << endl;
-    clientAddr.sin_addr.s_addr = inet_addr(table[defaultIP].c_str());
+    clientAddr.sin_addr.s_addr = inet_addr( table[defaultIP].c_str() );
 
     bzero( &serverAddr, sizeof( serverAddr ) );
     serverAddr.sin_family = AF_INET;
