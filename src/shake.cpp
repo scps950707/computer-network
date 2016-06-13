@@ -8,6 +8,7 @@
  */
 
 
+#include <arpa/inet.h>
 #include "shake.h"
 #include "tool.h"
 
@@ -19,7 +20,7 @@ void ServerThreeWayHandShake( int &sockFd, int &currentSeqnum, string &clientIP,
         if ( pktThreeShakeRcv.SYN == true && pktThreeShakeRcv.ACK == false )
         {
             cout << "=====Start the three-way handshake=====" << endl;
-            clientIP = getIpStr( &clientAddr.sin_addr );
+            clientIP = string ( inet_ntoa( clientAddr.sin_addr ) );
             clientPort = pktThreeShakeRcv.sourcePort;
             rcvPktMsg( "SYN", clientIP, clientPort );
             rcvPktNumMsg( pktThreeShakeRcv.seqNum, pktThreeShakeRcv.ackNum );

@@ -13,7 +13,6 @@ using namespace std;
 
 #define CHECKVAR(x) cout << "[CHECK] " #x " = " << x << std::endl
 #include<iostream>
-string getIpStr( struct in_addr *src );
 void sendPktMsg( string type, string ip, int port );
 void rcvPktMsg( string type, string ip, int port );
 void rcvPktNumMsg( int seqNum, int ackNum );

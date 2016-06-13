@@ -8,13 +8,7 @@
  */
 
 #include <iostream>
-#include <arpa/inet.h>
 using namespace std;
-
-string getIpStr( struct in_addr *src )
-{
-    return string (inet_ntoa(*src));
-}
 
 void sendPktMsg( string type, string ip, int port )
 {

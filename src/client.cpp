@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
     clientAddr.sin_addr.s_addr = inet_addr( defaultIP.c_str() );
     clientAddr.sin_port = htons( CLIENT_PORT );
 
-    cout << "client IP:" <<  getIpStr( &clientAddr.sin_addr ) << endl;
+    cout << "client IP:" << string( inet_ntoa( clientAddr.sin_addr ) ) << endl;
     cout << "translate IP to " << table[defaultIP] << endl;
     clientAddr.sin_addr.s_addr = inet_addr( table[defaultIP].c_str() );
 
