@@ -21,6 +21,7 @@
 #include "conavoid.h"
 #include "fastretrans.h"
 #include "fastrecovery.h"
+#include "sack.h"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -89,6 +90,8 @@ int main( int argc, char *argv[] )
     clientFastReTrans( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 #elif __FASTCOV__
     clientFastRecovery( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+#elif __SACK__
+    clientSack( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
 #endif
 
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );

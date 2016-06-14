@@ -33,6 +33,8 @@ typedef struct tmp
     uint16_t urgDataPtr;
     uint16_t tranSize;
     uint32_t options;
+    uint32_t sackBuffer[6];
+    int sackSize;
     char appData[MSS];
     tmp()
     {

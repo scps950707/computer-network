@@ -11,7 +11,7 @@ using namespace std;
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
-#define CHECKVAR(x) cout << "[CHECK] " #x " = " << x << std::endl
+#define CHECKVAR(x) cout << "["<< __FILE__ << ":" << __LINE__ << "]\t[" << #x " = " << x << "]"
 #include<iostream>
 void sendPktMsg( string type, string ip, int port );
 void rcvPktMsg( string type, string ip, int port );

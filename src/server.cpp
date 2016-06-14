@@ -17,6 +17,7 @@
 #include "conavoid.h"
 #include "fastretrans.h"
 #include "fastrecovery.h"
+#include "sack.h"
 using namespace std;
 
 int main()
@@ -80,6 +81,8 @@ int main()
     serverFastReTrans( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
 #elif __FASTCOV__
     serverFastRecovery( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+#elif __SACK__
+    serverSack( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
 #endif
     curRcvSeqnum = pktTransAck.seqNum;
 
