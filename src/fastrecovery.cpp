@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-14 02:47
- * Last Modified:  2016-06-14 02:47
+ * Last Modified:  2016-06-15 03:47
  * Filename:       fastrecovery.cpp
  * Purpose:        hw
  */
@@ -24,15 +24,9 @@ void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
-    uint32_t lastTranSeqNum = 0;
-    bool simulated = false;
-    int fakecount = 0;
+    uint32_t lastAckNum = 0;
     while ( true )
     {
-        if ( lastTranSeqNum != PKTLOSSNUM || simulated )
-        {
-            lastTranSeqNum = pktTransRcv.tranSeqNum;
-        }
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
         rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
         memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
@@ -40,15 +34,10 @@ void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint
         {
             break;
         }
-        if ( ( pktTransRcv.tranSeqNum == PKTLOSSNUM || lastTranSeqNum == PKTLOSSNUM ) && !simulated )
+        if ( lastAckNum != 0 && lastAckNum != pktTransRcv.tranSeqNum )
         {
-            if ( ++fakecount == 3 )
-            {
-                simulated = true;
-            }
-            lastTranSeqNum = PKTLOSSNUM;
             Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = PKTLOSSNUM;
+            dataAck.tranAckNum = lastAckNum;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
         }
         else
@@ -56,6 +45,7 @@ void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint
             Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
             dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
+            lastAckNum = dataAck.tranAckNum;
         }
     }
     cout << "The file transmission finished" << endl;
@@ -110,6 +100,9 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
             if ( sndIndex + 1 == PKTLOSSNUM && !simulated )
             {
                 cout << "*****Data loss at byte : " << PKTLOSSNUM << endl;
+                bytesLeft -= siz;
+                sndIndex += siz;
+                continue;
             }
             Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
             dataSnd.tranSeqNum = sndIndex + 1;
@@ -127,11 +120,16 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
             preCwnd = cwnd;
             lastAckNum = pktTransAck.tranAckNum;
             recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-            rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
+            /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
+            msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
             if ( lastAckNum == pktTransAck.tranAckNum )
             {
                 if ( ++dupAckCnt == 3 )
                 {
+                    for ( unsigned int i = 0; i < msgBuf.size(); i++ )
+                    {
+                        rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );
+                    }
                     cout << endl;
                     cout << "Receive three Dup Acks" << endl;
                     cout << "******FAST RECOVERY*****" << endl;
@@ -154,6 +152,10 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
         if ( jumpout )
         {
             continue;
+        }
+        for ( unsigned int i = 0; i < msgBuf.size(); i++ )
+        {
+            rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );
         }
         if ( state == SLOWSTART )
         {
