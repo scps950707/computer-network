@@ -42,7 +42,7 @@ void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint
         }
         if ( ( pktTransRcv.tranSeqNum == PKTLOSSNUM || lastTranSeqNum == PKTLOSSNUM ) && !simulated )
         {
-            if ( ++fakecount == 2 )
+            if ( ++fakecount == 3 )
             {
                 simulated = true;
             }
@@ -125,7 +125,7 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
             rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum );
             if ( lastAckNum == pktTransAck.tranAckNum )
             {
-                if ( ++dupAckCnt == 2 )
+                if ( ++dupAckCnt == 3 )
                 {
                     cout << endl;
                     cout << "Receive three Dup Acks" << endl;
