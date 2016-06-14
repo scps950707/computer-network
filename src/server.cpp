@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include "server.h"
 #include "shake.h"
 #include "slow.h"
@@ -85,6 +86,8 @@ int main()
     Packet pktFourShake;
     ServerFourWayHandShake( sockFd, currentSeqnum, curRcvSeqnum, clientIP, clientPort, clientAddr, pktFourShake );
     curRcvSeqnum = pktFourShake.seqNum;
+
+    close ( sockFd );
 
     return EXIT_SUCCESS;
 }

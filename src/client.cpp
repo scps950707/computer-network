@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include "client.h"
 #include "tool.h"
 #include "shake.h"
@@ -91,6 +92,8 @@ int main( int argc, char *argv[] )
 #endif
 
     ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+
+    close ( sockFd );
 
     return EXIT_SUCCESS;
 }
