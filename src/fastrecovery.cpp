@@ -25,7 +25,7 @@ void clientFastRecovery( int &sockFd, int &currentSeqnum, string &serverIP, uint
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
     uint32_t lastTranSeqNum = 0;
-    int simulated = false;
+    bool simulated = false;
     int fakecount = 0;
     while ( true )
     {
@@ -77,6 +77,7 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
 
     int dupAckCnt = 0;
     uint32_t lastAckNum = 0;
+    bool simulated = false;
     int threshold = THRESHOLD;
 
     int state = SLOWSTART;
@@ -106,6 +107,10 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
         for ( int i = 0; i < cnt; i++ )
         {
             cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
+            if ( sndIndex + 1 == PKTLOSSNUM && !simulated )
+            {
+                cout << "*****Data loss at byte : " << PKTLOSSNUM << endl;
+            }
             Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
             dataSnd.tranSeqNum = sndIndex + 1;
             dataSnd.tranSize = bytesLeft < siz ? bytesLeft : siz;
@@ -137,6 +142,7 @@ void serverFastRecovery( int &sockFd, int &currentSeqnum, uint16_t &clientPort, 
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
                     sndIndex = lastAckNum - 1;
                     jumpout = true;
+                    simulated = true;
                     break;
                 }
             }
