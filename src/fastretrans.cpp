@@ -24,7 +24,7 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
-    uint32_t lastAckNum = 0;
+    uint32_t lastAckNum = 1;
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
@@ -76,7 +76,7 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
     bool jumpout = false;
     while ( true )
     {
-        if ( state == SLOWSTART && cwnd >= threshold )
+        if ( ( state == SLOWSTART || state == FASTRECOVERY ) && cwnd >= threshold )
         {
             cout << "**********Start Congestion Avoidance*********" << endl;
             state = CONAVOID;
