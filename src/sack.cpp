@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-14 21:25
- * Last Modified:  2016-06-14 21:25
+ * Last Modified:  2016-06-15 13:48
  * Filename:       sack.cpp
  * Purpose:        hw
  */
@@ -19,11 +19,11 @@
 #include "para.h"
 #define PKTLOSSNUM 5120
 #define PKTLOSSNUM_2 6144
-#define PKTLOSSNUM_3 7618
+#define PKTLOSSNUM_3 7168
 
 void printSack( uint32_t *sackBuffer )
 {
-    for ( int i = 0; i < 6; i++ )
+    for ( int i = 0; i < SACKSIZE; i++ )
     {
         if ( sackBuffer[i] != 0 )
         {
@@ -33,35 +33,71 @@ void printSack( uint32_t *sackBuffer )
     cout << endl;
 }
 
+void removeleft( uint32_t *sackBuffer, int &sackCnt )
+{
+    for ( int i = 0; i < 4; i++ )
+    {
+        sackBuffer[i] = sackBuffer[i + 2];
+    }
+    sackBuffer[4] = 0;
+    sackBuffer[5] = 0;
+    sackCnt -= 2;
+}
+
 void clientSack( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
     Packet pktTransRcv;
     char fileBuf[FILEMAX];
-    uint32_t lastAckNum = 0;
+    uint32_t lastAckNum = 1;
+    uint32_t sackBuffer[SACKSIZE];
+    bzero( sackBuffer, sizeof( sackBuffer ) );
+    int sackCnt = 0;
+    cout << "ACK\t1 Left 1 Right 2 Left 2 Right 3 Left 3 Right" << endl;
     while ( true )
     {
         recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
-        rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
+        /* rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum ); */
         memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
         if ( pktTransRcv.transEnd )
         {
             break;
         }
+        if ( pktTransRcv.tranSeqNum != lastAckNum )
+        {
+            sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum;
+            sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+        }
+        else
+        {
+            if ( sackCnt != 0 )
+            {
+                pktTransRcv.tranSize += pktTransRcv.tranSize;
+            }
+        }
         if ( lastAckNum != 0 && lastAckNum != pktTransRcv.tranSeqNum )
         {
             Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
             dataAck.tranAckNum = lastAckNum;
+            memcpy( dataAck.sackBuffer, sackBuffer, sizeof( sackBuffer ) );
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
+            cout << left << setw( 5 ) << dataAck.tranAckNum << "\t";
         }
         else
         {
             Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
             dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            memcpy( dataAck.sackBuffer, sackBuffer, sizeof( sackBuffer ) );
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
             lastAckNum = dataAck.tranAckNum;
+            cout << left <<  setw( 5 ) << dataAck.tranAckNum << "\t";
+            if ( dataAck.tranAckNum == sackBuffer[1] )
+            {
+                removeleft( sackBuffer, sackCnt );
+            }
         }
+        printSack( sackBuffer );
     }
     cout << "The file transmission finished" << endl;
     int output = creat( "output", 0666 );
@@ -111,24 +147,43 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
         cout << "cwnd = " << cwnd << ", rwnd = " << rwnd - preCwnd << ", threshold = " << threshold << endl;
         for ( int i = 0; i < cnt; i++ )
         {
+            bool skip = false;
+            if ( simulated )
+            {
+                for ( int i = 0; i < SACKSIZE; i += 2 )
+                {
+                    if ( pktTransAck.sackBuffer[i] == ( uint32_t )( sndIndex + 1 ) )
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+            }
+            if ( skip )
+            {
+                bytesLeft -= siz;
+                sndIndex += siz;
+                i--;
+                continue;
+            }
             cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
-            if ( ( sndIndex + 1 == PKTLOSSNUM ) && !simulated )
+            if ( sndIndex + 1 == PKTLOSSNUM && !simulated )
             {
                 cout << "*****Data loss at byte : " << PKTLOSSNUM << endl;
                 bytesLeft -= siz;
                 sndIndex += siz;
                 continue;
             }
-            else if ( ( sndIndex + 1 == PKTLOSSNUM_2 ) && !simulated )
+            else if ( sndIndex + 1 == PKTLOSSNUM_2 && !simulated )
             {
                 cout << "*****Data loss at byte : " << PKTLOSSNUM_2 << endl;
                 bytesLeft -= siz;
                 sndIndex += siz;
                 continue;
             }
-            else if ( ( sndIndex + 1 == PKTLOSSNUM_3 ) && !simulated )
+            else if ( sndIndex + 1 == PKTLOSSNUM_3 && !simulated )
             {
-                /* cout << "*****Data loss at byte : " << PKTLOSSNUM_3 << endl; */
+                cout << "*****Data loss at byte : " << PKTLOSSNUM_3 << endl;
                 bytesLeft -= siz;
                 sndIndex += siz;
                 continue;
@@ -155,7 +210,6 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
             {
                 if ( ++dupAckCnt == 3 )
                 {
-                    cout << "*****Data loss at byte : " << PKTLOSSNUM_3 << endl;
                     for ( unsigned int i = 0; i < msgBuf.size(); i++ )
                     {
                         rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );

@@ -15,6 +15,7 @@
 #define MSS 512
 #define FILEMAX 10240
 #define THRESHOLD 4096
+#define SACKSIZE 6
 enum {SLOWSTART, CONAVOID, FASTRECOVERY};
 
 #endif
