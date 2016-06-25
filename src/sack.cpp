@@ -35,12 +35,12 @@ void printSack( uint32_t *sackBuffer )
 
 void removeleft( uint32_t *sackBuffer, int &sackCnt )
 {
-    for ( int i = 0; i < 4; i++ )
+    for ( int i = 0; i < SACKSIZE - 2; i++ )
     {
         sackBuffer[i] = sackBuffer[i + 2];
     }
-    sackBuffer[4] = 0;
-    sackBuffer[5] = 0;
+    sackBuffer[SACKSIZE - 2] = 0;
+    sackBuffer[SACKSIZE - 1] = 0;
     sackCnt -= 2;
 }
 
@@ -69,13 +69,6 @@ void clientSack( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &se
             sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum;
             sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
         }
-        else
-        {
-            if ( sackCnt != 0 )
-            {
-                pktTransRcv.tranSize += pktTransRcv.tranSize;
-            }
-        }
         if ( lastAckNum != 0 && lastAckNum != pktTransRcv.tranSeqNum )
         {
             Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
@@ -87,7 +80,14 @@ void clientSack( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &se
         else
         {
             Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            if ( sackCnt != 0 )
+            {
+                dataAck.tranAckNum = sackBuffer[1];
+            }
+            else
+            {
+                dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            }
             memcpy( dataAck.sackBuffer, sackBuffer, sizeof( sackBuffer ) );
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
             lastAckNum = dataAck.tranAckNum;
@@ -205,7 +205,6 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                     cout << "******FAST RECOVERY*****" << endl;
                     cout << endl;
                     threshold = cwnd / 2;
-                    cwnd += 1024;
                     cwnd /= 2;
                     preCwnd = 0;
                     bytesLeft = FILEMAX - ( lastAckNum - 1 );
@@ -221,14 +220,6 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                 jumpout = false;
             }
         }
-        if ( jumpout )
-        {
-            continue;
-        }
-        for ( unsigned int i = 0; i < msgBuf.size(); i++ )
-        {
-            rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );
-        }
         if ( state == SLOWSTART )
         {
             cwnd *= 2;
@@ -240,6 +231,14 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
         else if ( state == FASTRECOVERY )
         {
             cwnd += MSS;
+        }
+        if ( jumpout )
+        {
+            continue;
+        }
+        for ( unsigned int i = 0; i < msgBuf.size(); i++ )
+        {
+            rcvPktNumMsg( msgBuf[i].first, msgBuf[i].second );
         }
         if ( bytesLeft <= 0 )
         {
