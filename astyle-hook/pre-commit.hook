@@ -1,7 +1,7 @@
 #!/bin/bash
 
+cd `git rev-parse --show-toplevel`
 
-RETURN=0
 ASTYLE=$(which astyle)
 if [ $? -ne 0 ]; then
     echo "[!] astyle not installed. Unable to check source file format policy." >&2
@@ -23,15 +23,9 @@ for FILE in $FILES; do
     rm "${newfile}"
     rm "${nf}"
     if [ $r != 0 ] ; then
-        echo "[!] $FILE does not follow the consistent coding style." >&2
-        RETURN=1
+        astyle --suffix=none $FILE
+        git add $FILE
     fi
 done
 
-if [ $RETURN -eq 1 ]; then
-    echo "The default astyle option is `cat ~/.astylerc`"
-    echo "You can use the following command to format your code:"
-    echo "astyle --suffix=none \`find . -regex '.*\.[ch]p*p*$'\`"
-fi
-
-exit $RETURN
+exit 0
