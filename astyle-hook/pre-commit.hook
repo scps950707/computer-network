@@ -1,6 +1,5 @@
 #!/bin/bash
 
-OPTIONS="-A1s4pDHk3W3j"
 
 RETURN=0
 ASTYLE=$(which astyle)
@@ -18,7 +17,7 @@ FILES=`git diff --cached --name-only --diff-filter=ACMR | grep -E "\.(c|cpp|h)$"
 for FILE in $FILES; do
     nf=`git checkout-index --temp $FILE | cut -f 1`
     newfile=`mktemp /tmp/${nf}.XXXXXX` || exit 1
-    $ASTYLE $OPTIONS < $nf > $newfile 2>> /dev/null
+    $ASTYLE < $nf > $newfile 2>> /dev/null
     $DIFF -u -p -B  "${nf}" "${newfile}"
     r=$?
     rm "${newfile}"
@@ -30,8 +29,9 @@ for FILE in $FILES; do
 done
 
 if [ $RETURN -eq 1 ]; then
+    echo "The default astyle option is `cat ~/.astylerc`"
     echo "You can use the following command to format your code:"
-    echo "astyle -A1s4pDHk3W3j --suffix=none \`find . -regex '.*\.[ch]p*p*$'\`"
+    echo "astyle --suffix=none \`find . -regex '.*\.[ch]p*p*$'\`"
 fi
 
 exit $RETURN
