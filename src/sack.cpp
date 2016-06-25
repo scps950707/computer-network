@@ -167,23 +167,9 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                 continue;
             }
             cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
-            if ( sndIndex + 1 == PKTLOSSNUM && !simulated )
+            if ( ( sndIndex + 1 == PKTLOSSNUM || sndIndex + 1 == PKTLOSSNUM_2 || sndIndex + 1 == PKTLOSSNUM_3 )  && !simulated )
             {
-                cout << "*****Data loss at byte : " << PKTLOSSNUM << endl;
-                bytesLeft -= siz;
-                sndIndex += siz;
-                continue;
-            }
-            else if ( sndIndex + 1 == PKTLOSSNUM_2 && !simulated )
-            {
-                cout << "*****Data loss at byte : " << PKTLOSSNUM_2 << endl;
-                bytesLeft -= siz;
-                sndIndex += siz;
-                continue;
-            }
-            else if ( sndIndex + 1 == PKTLOSSNUM_3 && !simulated )
-            {
-                cout << "*****Data loss at byte : " << PKTLOSSNUM_3 << endl;
+                cout << "*****Data loss at byte : " << sndIndex + 1 << endl;
                 bytesLeft -= siz;
                 sndIndex += siz;
                 continue;
