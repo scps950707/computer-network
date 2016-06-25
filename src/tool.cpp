@@ -21,9 +21,9 @@ void rcvPktMsg( string type, string ip, int port )
     cout << "Receive a packet(" << type << ") from " <<  ip << " : " << port << endl;
 }
 
-void rcvPktNumMsg( int seqNum, int ackNum )
+void rcvPktNumMsg( int pktSeqNum, int pktAckNum )
 {
-    cout << "\tReceive a packet (seq_num = " << seqNum << ", ack_num = " << ackNum << ")" << endl;
+    cout << "\tReceive a packet (seq_num = " << pktSeqNum << ", ack_num = " << pktAckNum << ")" << endl;
 }
 
 void randFile( char *src, int size )

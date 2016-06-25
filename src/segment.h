@@ -17,10 +17,10 @@ typedef struct tmp
 {
     uint16_t sourcePort;
     uint16_t destPort;
-    uint32_t seqNum;
-    uint32_t ackNum;
-    uint32_t tranSeqNum;
-    uint32_t tranAckNum;
+    uint32_t pktSeqNum;
+    uint32_t pktAckNum;
+    uint32_t dataPktSeqNum;
+    uint32_t dataPktAckNum;
     bool URG;
     bool ACK;
     bool PSH;
@@ -31,7 +31,7 @@ typedef struct tmp
     uint16_t rwnd;
     uint16_t checkSum;
     uint16_t urgDataPtr;
-    uint16_t tranSize;
+    uint16_t dataSize;
     uint32_t options;
     uint32_t sackBuffer[6];
     int sackSize;
@@ -40,8 +40,8 @@ typedef struct tmp
     {
         sourcePort = 0;
         destPort = 0;
-        seqNum = 0;
-        ackNum = 0;
+        pktSeqNum = 0;
+        pktAckNum = 0;
         URG = false;
         ACK = false;
         PSH = false;
@@ -53,10 +53,10 @@ typedef struct tmp
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
-        tranSize = 0;
+        dataSize = 0;
     }
-    tmp( uint16_t sourcePort, uint16_t destPort, uint32_t seqNum, uint32_t ackNum )
-        : sourcePort( sourcePort ), destPort( destPort ), seqNum( seqNum ), ackNum( ackNum )
+    tmp( uint16_t sourcePort, uint16_t destPort, uint32_t pktSeqNum, uint32_t pktAckNum )
+        : sourcePort( sourcePort ), destPort( destPort ), pktSeqNum( pktSeqNum ), pktAckNum( pktAckNum )
     {
         URG = false;
         ACK = false;
@@ -65,13 +65,13 @@ typedef struct tmp
         SYN = false;
         FIN = false;
         transEnd = false;
-        tranSeqNum = 0;
-        tranAckNum = 0;
+        dataPktSeqNum = 0;
+        dataPktAckNum = 0;
         rwnd = 0;
         checkSum = 0;
         urgDataPtr = 0;
         options = 0;
-        tranSize = 0;
+        dataSize = 0;
     }
 }
 Packet;

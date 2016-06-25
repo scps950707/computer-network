@@ -44,55 +44,55 @@ void removeleft( uint32_t *sackBuffer, int &sackCnt )
     sackCnt -= 2;
 }
 
-void clientSack( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
+void clientSack( int &sockFd, int &curPktSeqNum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
-    Packet pktTransRcv;
+    Packet pktDataRcv;
     char fileBuf[FILEMAX];
-    uint32_t lastAckNum = 1;
+    uint32_t lastDataPktAckNum = 1;
     uint32_t sackBuffer[SACKSIZE];
     bzero( sackBuffer, sizeof( sackBuffer ) );
     int sackCnt = 0;
     cout << "ACK\t1 Left 1 Right 2 Left 2 Right 3 Left 3 Right" << endl;
     while ( true )
     {
-        recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
-        /* rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum ); */
-        memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
-        if ( pktTransRcv.transEnd )
+        recvfrom( sockFd , &pktDataRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
+        /* rcvPktNumMsg( pktDataRcv.dataPktSeqNum, pktDataRcv.pktAckNum ); */
+        memcpy( &fileBuf[pktDataRcv.dataPktSeqNum - 1], pktDataRcv.appData, pktDataRcv.dataSize );
+        if ( pktDataRcv.transEnd )
         {
             break;
         }
-        if ( pktTransRcv.tranSeqNum != lastAckNum )
+        if ( pktDataRcv.dataPktSeqNum != lastDataPktAckNum )
         {
-            sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum;
-            sackBuffer[sackCnt++] = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            sackBuffer[sackCnt++] = pktDataRcv.dataPktSeqNum;
+            sackBuffer[sackCnt++] = pktDataRcv.dataPktSeqNum + pktDataRcv.dataSize;
         }
-        if ( lastAckNum != 0 && lastAckNum != pktTransRcv.tranSeqNum )
+        if ( lastDataPktAckNum != 0 && lastDataPktAckNum != pktDataRcv.dataPktSeqNum )
         {
-            Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = lastAckNum;
+            Packet dataAck( CLIENT_PORT, serverPort, curPktSeqNum, pktDataRcv.pktSeqNum + 1 );
+            dataAck.dataPktAckNum = lastDataPktAckNum;
             memcpy( dataAck.sackBuffer, sackBuffer, sizeof( sackBuffer ) );
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-            cout << left << setw( 5 ) << dataAck.tranAckNum << "\t";
+            cout << left << setw( 5 ) << dataAck.dataPktAckNum << "\t";
         }
         else
         {
-            Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
+            Packet dataAck( CLIENT_PORT, serverPort, ++curPktSeqNum, pktDataRcv.pktSeqNum + 1 );
             if ( sackCnt != 0 )
             {
-                dataAck.tranAckNum = sackBuffer[1];
+                dataAck.dataPktAckNum = sackBuffer[1];
             }
             else
             {
-                dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+                dataAck.dataPktAckNum = pktDataRcv.dataPktSeqNum + pktDataRcv.dataSize;
             }
             memcpy( dataAck.sackBuffer, sackBuffer, sizeof( sackBuffer ) );
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-            lastAckNum = dataAck.tranAckNum;
-            cout << left <<  setw( 5 ) << dataAck.tranAckNum << "\t";
-            if ( dataAck.tranAckNum == sackBuffer[1] )
+            lastDataPktAckNum = dataAck.dataPktAckNum;
+            cout << left <<  setw( 5 ) << dataAck.dataPktAckNum << "\t";
+            if ( dataAck.dataPktAckNum == sackBuffer[1] )
             {
                 removeleft( sackBuffer, sackCnt );
             }
@@ -105,19 +105,19 @@ void clientSack( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &se
     close( output );
 }
 
-void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
+void serverSack( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktDataAck )
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
     int preCwnd = 0;
-    int rwnd = pktTransAck.rwnd;
+    int rwnd = pktDataAck.rwnd;
     int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
     randFile( fileBuf, FILEMAX );
 
     int dupAckCnt = 0;
-    uint32_t lastAckNum = 0;
+    uint32_t lastDataPktAckNum = 0;
     bool simulated = false;
     int threshold = THRESHOLD;
 
@@ -152,7 +152,7 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
             {
                 for ( int i = 0; i < SACKSIZE; i += 2 )
                 {
-                    if ( pktTransAck.sackBuffer[i] == ( uint32_t )( sndIndex + 1 ) )
+                    if ( pktDataAck.sackBuffer[i] == ( uint32_t )( sndIndex + 1 ) )
                     {
                         skip = true;
                         break;
@@ -174,13 +174,13 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                 sndIndex += siz;
                 continue;
             }
-            Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-            dataSnd.tranSeqNum = sndIndex + 1;
-            dataSnd.tranSize = bytesLeft < siz ? bytesLeft : siz;
-            dataSnd.transEnd = bytesLeft < siz;
-            bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-            memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
-            sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
+            Packet pktDataSnd( SERVER_PORT, clientPort, ++curPktSeqNum, pktDataAck.pktSeqNum + 1 );
+            pktDataSnd.dataPktSeqNum = sndIndex + 1;
+            pktDataSnd.dataSize = bytesLeft < siz ? bytesLeft : siz;
+            pktDataSnd.transEnd = bytesLeft < siz;
+            bzero( &pktDataSnd.appData, sizeof( pktDataSnd.appData ) );
+            memcpy( pktDataSnd.appData, ( void * )&fileBuf[sndIndex], pktDataSnd.dataSize );
+            sendto( sockFd, &pktDataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
             bytesLeft -= siz;
             sndIndex += siz;
             if ( bytesLeft <= 0 )
@@ -188,11 +188,11 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                 break;
             }
             preCwnd = cwnd;
-            lastAckNum = pktTransAck.tranAckNum;
-            recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-            /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
-            msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
-            if ( lastAckNum == pktTransAck.tranAckNum )
+            lastDataPktAckNum = pktDataAck.dataPktAckNum;
+            recvfrom( sockFd , &pktDataAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+            /* rcvPktNumMsg( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ); */
+            msgBuf.push_back( pair<uint32_t, uint32_t>( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ) );
+            if ( lastDataPktAckNum == pktDataAck.dataPktAckNum )
             {
                 if ( ++dupAckCnt == 3 )
                 {
@@ -207,8 +207,8 @@ void serverSack( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr
                     threshold = cwnd / 2;
                     cwnd /= 2;
                     preCwnd = 0;
-                    bytesLeft = FILEMAX - ( lastAckNum - 1 );
-                    sndIndex = lastAckNum - 1;
+                    bytesLeft = FILEMAX - ( lastDataPktAckNum - 1 );
+                    sndIndex = lastDataPktAckNum - 1;
                     jumpout = true;
                     simulated = true;
                     state = FASTRECOVERY;

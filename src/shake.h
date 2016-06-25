@@ -17,9 +17,9 @@
 #include "segment.h"
 using namespace std;
 
-void ServerThreeWayHandShake( int &sockFd, int &currentSeqnum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktThreeShakeRcv );
-void ServerFourWayHandShake( int &sockFd, int &currentSeqnum, int &curRcvSeqnum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktFourShake );
-void ClientThreeWayHandShake( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr );
-void ClientFourWayHandShake( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr );
+void ServerThreeWayHandShake( int &sockFd, int &curPktSeqNum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktThreeShakeRcv );
+void ServerFourWayHandShake( int &sockFd, int &curPktSeqNum, int &curRcvpktSeqNum, string &clientIP, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktFourShake );
+void ClientThreeWayHandShake( int &sockFd, int &curPktSeqNum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr );
+void ClientFourWayHandShake( int &sockFd, int &curPktSeqNum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr );
 
 #endif

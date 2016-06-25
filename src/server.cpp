@@ -29,11 +29,11 @@ int main()
     struct sockaddr_in clientAddr;
     int sockFd;
 #ifdef __SEQSTATIC__
-    int currentSeqnum = 3439;
+    int curPktSeqNum = 3439;
 #else
-    int currentSeqnum = rand() % 10000 + 1;
+    int curPktSeqNum = rand() % 10000 + 1;
 #endif
-    int curRcvSeqnum;
+    int curRcvpktSeqNum;
     string clientIP;
     uint16_t clientPort;
 
@@ -65,30 +65,30 @@ int main()
     cout << "Listening for client..." << endl;
 
     Packet pktThreeShakeRcv;
-    ServerThreeWayHandShake( sockFd, currentSeqnum, clientIP, clientPort, clientAddr, pktThreeShakeRcv );
-    curRcvSeqnum = pktThreeShakeRcv.seqNum;
+    ServerThreeWayHandShake( sockFd, curPktSeqNum, clientIP, clientPort, clientAddr, pktThreeShakeRcv );
+    curRcvpktSeqNum = pktThreeShakeRcv.pktSeqNum;
 
-    Packet pktTransAck;
-    pktTransAck.seqNum = curRcvSeqnum;
-    pktTransAck.rwnd = pktThreeShakeRcv.rwnd;
+    Packet pktDataAck;
+    pktDataAck.pktSeqNum = curRcvpktSeqNum;
+    pktDataAck.rwnd = pktThreeShakeRcv.rwnd;
 #ifdef __SLOW__
-    serverSlowStart( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverSlowStart( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #elif __DELAY__
-    serverDelayAck( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverDelayAck( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #elif __CONAVOID__
-    serverConAvoid( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverConAvoid( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #elif __FASTRE__
-    serverFastReTrans( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverFastReTrans( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #elif __FASTCOV__
-    serverFastRecovery( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverFastRecovery( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #elif __SACK__
-    serverSack( sockFd, currentSeqnum, clientPort, clientAddr, pktTransAck );
+    serverSack( sockFd, curPktSeqNum, clientPort, clientAddr, pktDataAck );
 #endif
-    curRcvSeqnum = pktTransAck.seqNum;
+    curRcvpktSeqNum = pktDataAck.pktSeqNum;
 
     Packet pktFourShake;
-    ServerFourWayHandShake( sockFd, currentSeqnum, curRcvSeqnum, clientIP, clientPort, clientAddr, pktFourShake );
-    curRcvSeqnum = pktFourShake.seqNum;
+    ServerFourWayHandShake( sockFd, curPktSeqNum, curRcvpktSeqNum, clientIP, clientPort, clientAddr, pktFourShake );
+    curRcvpktSeqNum = pktFourShake.pktSeqNum;
 
     close ( sockFd );
 

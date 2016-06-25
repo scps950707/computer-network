@@ -14,24 +14,24 @@
 #include "tool.h"
 #include "conavoid.h"
 
-void clientConAvoid( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
+void clientConAvoid( int &sockFd, int &curPktSeqNum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
-    Packet pktTransRcv;
+    Packet pktDataRcv;
     char fileBuf[FILEMAX];
     int pktCount = 1;
     while ( true )
     {
-        recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
-        rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
-        if ( pktTransRcv.transEnd )
+        recvfrom( sockFd , &pktDataRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
+        rcvPktNumMsg( pktDataRcv.dataPktSeqNum, pktDataRcv.pktAckNum );
+        memcpy( &fileBuf[pktDataRcv.dataPktSeqNum - 1], pktDataRcv.appData, pktDataRcv.dataSize );
+        if ( pktDataRcv.transEnd )
         {
             break;
         }
-        Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-        dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+        Packet dataAck( CLIENT_PORT, serverPort, ++curPktSeqNum, pktDataRcv.pktSeqNum + 1 );
+        dataAck.dataPktAckNum = pktDataRcv.dataPktSeqNum + pktDataRcv.dataSize;
         if ( pktCount % 2 == 0 )
         {
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
@@ -44,12 +44,12 @@ void clientConAvoid( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t
     close( output );
 }
 
-void serverConAvoid( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
+void serverConAvoid( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktDataAck )
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
     int preCwnd = 0;
-    int rwnd = pktTransAck.rwnd;
+    int rwnd = pktDataAck.rwnd;
     int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
@@ -82,13 +82,13 @@ void serverConAvoid( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sock
         for ( int i = 0; i < cnt; i++ )
         {
             cout << "\tSend a packet at : " << sndIndex + 1 << " byte " << endl;
-            Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-            dataSnd.tranSeqNum = sndIndex + 1;
-            dataSnd.tranSize = bytesLeft < siz ? bytesLeft : siz;
-            dataSnd.transEnd = bytesLeft < siz;
-            bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-            memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
-            sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
+            Packet pktDataSnd( SERVER_PORT, clientPort, ++curPktSeqNum, pktDataAck.pktSeqNum + 1 );
+            pktDataSnd.dataPktSeqNum = sndIndex + 1;
+            pktDataSnd.dataSize = bytesLeft < siz ? bytesLeft : siz;
+            pktDataSnd.transEnd = bytesLeft < siz;
+            bzero( &pktDataSnd.appData, sizeof( pktDataSnd.appData ) );
+            memcpy( pktDataSnd.appData, ( void * )&fileBuf[sndIndex], pktDataSnd.dataSize );
+            sendto( sockFd, &pktDataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
             bytesLeft -= siz;
             sndIndex += siz;
             if ( bytesLeft <= 0 )
@@ -98,13 +98,13 @@ void serverConAvoid( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sock
             preCwnd = cwnd;
             if ( pktCount % 2 == 0 )
             {
-                recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-                /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
-                msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
+                recvfrom( sockFd , &pktDataAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+                /* rcvPktNumMsg( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ); */
+                msgBuf.push_back( pair<uint32_t, uint32_t>( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ) );
             }
             else
             {
-                pktTransAck.seqNum++;
+                pktDataAck.pktSeqNum++;
             }
             pktCount++;
         }

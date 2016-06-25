@@ -18,34 +18,34 @@
 #include "para.h"
 #define PKTLOSSNUM 2048
 
-void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
+void clientFastReTrans( int &sockFd, int &curPktSeqNum, string &serverIP, uint16_t &serverPort, sockaddr_in &serverAddr )
 {
     cout << "Receive a file from " << serverIP << " : " << serverPort << endl;
     socklen_t serSize = sizeof( serverAddr );
-    Packet pktTransRcv;
+    Packet pktDataRcv;
     char fileBuf[FILEMAX];
-    uint32_t lastAckNum = 1;
+    uint32_t lastDataPktAckNum = 1;
     while ( true )
     {
-        recvfrom( sockFd , &pktTransRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
-        rcvPktNumMsg( pktTransRcv.tranSeqNum, pktTransRcv.ackNum );
-        memcpy( &fileBuf[pktTransRcv.tranSeqNum - 1], pktTransRcv.appData, pktTransRcv.tranSize );
-        if ( pktTransRcv.transEnd )
+        recvfrom( sockFd , &pktDataRcv, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, &serSize );
+        rcvPktNumMsg( pktDataRcv.dataPktSeqNum, pktDataRcv.pktAckNum );
+        memcpy( &fileBuf[pktDataRcv.dataPktSeqNum - 1], pktDataRcv.appData, pktDataRcv.dataSize );
+        if ( pktDataRcv.transEnd )
         {
             break;
         }
-        if ( lastAckNum != 0 && lastAckNum != pktTransRcv.tranSeqNum )
+        if ( lastDataPktAckNum != 0 && lastDataPktAckNum != pktDataRcv.dataPktSeqNum )
         {
-            Packet dataAck( CLIENT_PORT, serverPort, currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = lastAckNum;
+            Packet dataAck( CLIENT_PORT, serverPort, curPktSeqNum, pktDataRcv.pktSeqNum + 1 );
+            dataAck.dataPktAckNum = lastDataPktAckNum;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
         }
         else
         {
-            Packet dataAck( CLIENT_PORT, serverPort, ++currentSeqnum, pktTransRcv.seqNum + 1 );
-            dataAck.tranAckNum = pktTransRcv.tranSeqNum + pktTransRcv.tranSize;
+            Packet dataAck( CLIENT_PORT, serverPort, ++curPktSeqNum, pktDataRcv.pktSeqNum + 1 );
+            dataAck.dataPktAckNum = pktDataRcv.dataPktSeqNum + pktDataRcv.dataSize;
             sendto( sockFd, &dataAck, sizeof( Packet ), 0, ( struct sockaddr * )&serverAddr, serSize );
-            lastAckNum = dataAck.tranAckNum;
+            lastDataPktAckNum = dataAck.dataPktAckNum;
         }
     }
     cout << "The file transmission finished" << endl;
@@ -54,19 +54,19 @@ void clientFastReTrans( int &sockFd, int &currentSeqnum, string &serverIP, uint1
     close( output );
 }
 
-void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktTransAck )
+void serverFastReTrans( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, sockaddr_in &clientAddr, Packet &pktDataAck )
 {
     socklen_t cliSize = sizeof( clientAddr );
     int cwnd = 1;
     int preCwnd = 0;
-    int rwnd = pktTransAck.rwnd;
+    int rwnd = pktDataAck.rwnd;
     int bytesLeft = FILEMAX;
     int sndIndex = 0;
     char fileBuf[FILEMAX];
     randFile( fileBuf, FILEMAX );
 
     int dupAckCnt = 0;
-    uint32_t lastAckNum = 0;
+    uint32_t lastDataPktAckNum = 0;
     bool simulated = false;
     int threshold = THRESHOLD;
 
@@ -104,13 +104,13 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                 sndIndex += siz;
                 continue;
             }
-            Packet dataSnd( SERVER_PORT, clientPort, ++currentSeqnum, pktTransAck.seqNum + 1 );
-            dataSnd.tranSeqNum = sndIndex + 1;
-            dataSnd.tranSize = bytesLeft < siz ? bytesLeft : siz;
-            dataSnd.transEnd = bytesLeft < siz;
-            bzero( &dataSnd.appData, sizeof( dataSnd.appData ) );
-            memcpy( dataSnd.appData, ( void * )&fileBuf[sndIndex], dataSnd.tranSize );
-            sendto( sockFd, &dataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
+            Packet pktDataSnd( SERVER_PORT, clientPort, ++curPktSeqNum, pktDataAck.pktSeqNum + 1 );
+            pktDataSnd.dataPktSeqNum = sndIndex + 1;
+            pktDataSnd.dataSize = bytesLeft < siz ? bytesLeft : siz;
+            pktDataSnd.transEnd = bytesLeft < siz;
+            bzero( &pktDataSnd.appData, sizeof( pktDataSnd.appData ) );
+            memcpy( pktDataSnd.appData, ( void * )&fileBuf[sndIndex], pktDataSnd.dataSize );
+            sendto( sockFd, &pktDataSnd, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, cliSize );
             bytesLeft -= siz;
             sndIndex += siz;
             if ( bytesLeft <= 0 )
@@ -118,11 +118,11 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                 break;
             }
             preCwnd = cwnd;
-            lastAckNum = pktTransAck.tranAckNum;
-            recvfrom( sockFd , &pktTransAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
-            /* rcvPktNumMsg( pktTransAck.seqNum, pktTransAck.tranAckNum ); */
-            msgBuf.push_back( pair<uint32_t, uint32_t>( pktTransAck.seqNum, pktTransAck.tranAckNum ) );
-            if ( lastAckNum == pktTransAck.tranAckNum )
+            lastDataPktAckNum = pktDataAck.dataPktAckNum;
+            recvfrom( sockFd , &pktDataAck, sizeof( Packet ), 0, ( struct sockaddr * )&clientAddr, &cliSize );
+            /* rcvPktNumMsg( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ); */
+            msgBuf.push_back( pair<uint32_t, uint32_t>( pktDataAck.pktSeqNum, pktDataAck.dataPktAckNum ) );
+            if ( lastDataPktAckNum == pktDataAck.dataPktAckNum )
             {
                 if ( ++dupAckCnt == 3 )
                 {
@@ -137,8 +137,8 @@ void serverFastReTrans( int &sockFd, int &currentSeqnum, uint16_t &clientPort, s
                     threshold = cwnd / 2;
                     cwnd = 1;
                     preCwnd = 0;
-                    bytesLeft = FILEMAX - ( lastAckNum - 1 );
-                    sndIndex = lastAckNum - 1;
+                    bytesLeft = FILEMAX - ( lastDataPktAckNum - 1 );
+                    sndIndex = lastDataPktAckNum - 1;
                     jumpout = true;
                     simulated = true;
                     break;

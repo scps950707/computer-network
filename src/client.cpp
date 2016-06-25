@@ -37,9 +37,9 @@ int main( int argc, char *argv[] )
     struct sockaddr_in serverAddr;
     int sockFd;
 #ifdef __SEQSTATIC__
-    int currentSeqnum = 9230;
+    int curPktSeqNum = 9230;
 #else
-    int currentSeqnum = rand() % 10000 + 1;
+    int curPktSeqNum = rand() % 10000 + 1;
 #endif
     string serverIP( argv[1] );
     uint16_t serverPort = atoi( argv[2] );
@@ -78,23 +78,23 @@ int main( int argc, char *argv[] )
         exit( EXIT_FAILURE );
     }
 
-    ClientThreeWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    ClientThreeWayHandShake( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 
 #ifdef __SLOW__
-    clientSlowStart( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientSlowStart( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #elif __DELAY__
-    clientDelayAck( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientDelayAck( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #elif __CONAVOID__
-    clientConAvoid( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientConAvoid( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #elif __FASTRE__
-    clientFastReTrans( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientFastReTrans( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #elif __FASTCOV__
-    clientFastRecovery( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientFastRecovery( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #elif __SACK__
-    clientSack( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    clientSack( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 #endif
 
-    ClientFourWayHandShake( sockFd, currentSeqnum, serverIP, serverPort, serverAddr );
+    ClientFourWayHandShake( sockFd, curPktSeqNum, serverIP, serverPort, serverAddr );
 
     close ( sockFd );
 
