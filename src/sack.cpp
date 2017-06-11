@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-14 21:25
- * Last Modified:  2016-06-15 13:48
+ * Last Modified:  2017-06-11 21:03
  * Filename:       sack.cpp
  * Purpose:        hw
  */
@@ -132,7 +132,7 @@ void serverSack( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, sockaddr_
             cout << "**********Start Congestion Avoidance*********" << endl;
             state = CONAVOID;
         }
-        vector< pair<uint32_t, uint32_t> > msgBuf;
+        vector<pair<uint32_t, uint32_t>> msgBuf;
         int cnt, siz;
         if ( cwnd > MSS )
         {

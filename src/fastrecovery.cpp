@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-14 02:47
- * Last Modified:  2016-06-15 03:47
+ * Last Modified:  2017-06-11 21:03
  * Filename:       fastrecovery.cpp
  * Purpose:        hw
  */
@@ -81,7 +81,7 @@ void serverFastRecovery( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, s
             cout << "**********Start Congestion Avoidance*********" << endl;
             state = CONAVOID;
         }
-        vector< pair<uint32_t, uint32_t> > msgBuf;
+        vector<pair<uint32_t, uint32_t>> msgBuf;
         int cnt, siz;
         if ( cwnd > MSS )
         {

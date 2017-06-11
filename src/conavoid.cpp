@@ -2,7 +2,7 @@
  * Author:         scps950707
  * Email:          scps950707@gmail.com
  * Created:        2016-06-12 02:47
- * Last Modified:  2016-06-13 23:04
+ * Last Modified:  2017-06-11 21:03
  * Filename:       congenavoid.cpp
  * Purpose:        HW
  */
@@ -66,7 +66,7 @@ void serverConAvoid( int &sockFd, int &curPktSeqNum, uint16_t &clientPort, socka
             cout << "**********Start Congestion Avoidance*********" << endl;
             state = CONAVOID;
         }
-        vector< pair<uint32_t, uint32_t> > msgBuf;
+        vector<pair<uint32_t, uint32_t>> msgBuf;
         int cnt, siz;
         if ( cwnd > MSS )
         {
